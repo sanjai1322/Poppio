@@ -5,6 +5,7 @@ import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { FLAVORS } from "@/lib/flavors";
+import { scrollToBeat } from "@/lib/flavorBeats";
 import { SLAM_FROM, SLAM_IN, splitForSlam } from "@/lib/slam";
 
 gsap.registerPlugin(useGSAP, ScrollTrigger);
@@ -52,24 +53,31 @@ export default function FlavorGrid() {
           className="mt-16 grid gap-5 sm:grid-cols-2 lg:grid-cols-4"
         >
           {FLAVORS.map((flavor, i) => (
-            <li
-              key={flavor.id}
-              data-card
-              className="flex aspect-[3/4] flex-col justify-between rounded-3xl p-7 transition-transform duration-500 ease-out hover:-translate-y-2"
-              style={{ backgroundColor: flavor.color }}
-            >
-              <span className="text-[0.7rem] uppercase tracking-[0.3em] text-cream/70">
-                No. {String(i + 1).padStart(2, "0")}
-              </span>
-              <div>
-                <h3 className="wordmark text-3xl leading-[0.9] text-cream">
-                  {flavor.name}
-                </h3>
-                <p className="mt-3 text-[0.7rem] uppercase tracking-[0.2em] text-cream/70">
-                  {flavor.notes}
-                </p>
-                <p className="mt-4 text-base text-cream">{flavor.tagline}</p>
-              </div>
+            <li key={flavor.id}>
+              {/* Scrolls to the beat's rest point; the flavour section's own
+                  trigger then fires the same spin as a scroll would. */}
+              <button
+                type="button"
+                data-card
+                onClick={() => scrollToBeat(i)}
+                className="group relative flex aspect-[3/4] w-full flex-col justify-between rounded-3xl p-7 text-left transition-transform duration-500 ease-out hover:-translate-y-2"
+                style={{ backgroundColor: flavor.color }}
+              >
+                <span className="text-[0.7rem] uppercase tracking-[0.3em] text-cream/70">
+                  No. {String(i + 1).padStart(2, "0")}
+                </span>
+                <span>
+                  <span className="wordmark block text-3xl leading-[0.9] text-cream">
+                    {flavor.name}
+                  </span>
+                  <span className="mt-3 block text-[0.7rem] uppercase tracking-[0.2em] text-cream/70">
+                    {flavor.notes}
+                  </span>
+                  <span className="mt-4 block text-base text-cream">
+                    {flavor.tagline}
+                  </span>
+                </span>
+              </button>
             </li>
           ))}
         </ul>

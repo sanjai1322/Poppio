@@ -8,9 +8,10 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import type { SplitText } from "gsap/SplitText";
 import FlavorScrollScene from "@/components/canvas/FlavorScrollScene";
 import { CREAM, FLAVORS, INK } from "@/lib/flavors";
-import { flavorProgress } from "@/lib/scrollState";
+import { canSpin, flavorProgress } from "@/lib/scrollState";
 import { activeFlavorStore, flavorSectionStore } from "@/lib/flavorStore";
 import { SLAM_FROM, SLAM_IN, SLAM_OUT, splitForSlam } from "@/lib/slam";
+import { usePerfTier } from "@/lib/usePerfTier";
 
 gsap.registerPlugin(useGSAP, ScrollTrigger);
 
@@ -21,16 +22,18 @@ export default function FlavorScroll() {
   const splits = useRef<SplitText[]>([]);
   const previous = useRef(0);
   const [active, setActive] = useState(0);
+  // What the can is actually wearing. Lags `active` by half a spin so the
+  // swap lands while the label is edge-on.
+  const [worn, setWorn] = useState(0);
   const activeRef = useRef(0);
+  const spinTimeline = useRef<gsap.core.Timeline | null>(null);
+  const { reducedMotion } = usePerfTier();
 
   useGSAP(
     () => {
       const articles = gsap.utils.toArray<HTMLElement>("[data-flavor-name]");
       // Looked up directly: selector strings inside useGSAP are scoped to the
       // section, and the colour plate is a sibling of it.
-      const bg = document.getElementById("bg");
-      const nav = document.getElementById("site-nav");
-
       splits.current = articles.map((article) =>
         splitForSlam(article.querySelector("h2")!),
       );
@@ -43,14 +46,13 @@ export default function FlavorScroll() {
         );
       });
 
-      const timeline = gsap.timeline({
-        scrollTrigger: {
-          trigger: root.current,
-          start: "top top",
-          end: "bottom bottom",
-          scrub: true,
-          onToggle: (self) => flavorSectionStore.set(self.isActive),
-          onUpdate: (self) => {
+      ScrollTrigger.create({
+        trigger: root.current,
+        start: "top top",
+        end: "bottom bottom",
+        scrub: true,
+        onToggle: (self) => flavorSectionStore.set(self.isActive),
+        onUpdate: (self) => {
             flavorProgress.current = self.progress;
             // Mirrors the trigger every update rather than trusting onToggle:
             // a scroll that lands inside the section in one frame never fires
@@ -68,46 +70,16 @@ export default function FlavorScroll() {
               activeFlavorStore.set(index);
             }
           },
-        },
       });
 
-      // Pad the timeline to one time unit per beat so positions below line up
-      // with scroll progress (progress 0.5 === position 2 with four flavours).
-      timeline.to({}, { duration: BEATS });
-
-      FLAVORS.forEach((flavor, i) => {
-        if (i === 0) return;
-        const at = i - 0.2;
-
-        if (bg) {
-          timeline.to(
-            bg,
-            { backgroundColor: flavor.color, duration: 0.4, ease: "none" },
-            at,
-          );
-        }
-
-        // Cream fails contrast on Pineapple Lime, so the bar flips to ink on
-        // the way in and back to cream on the way out — on the colour timeline,
-        // so it rides the same cross-fade and reverses with it.
-        if (nav) {
-          const wantsInk = flavor.id === "pineapple";
-          const leavingInk = FLAVORS[i - 1].id === "pineapple";
-          if (wantsInk || leavingInk) {
-            timeline.to(
-              nav,
-              { color: wantsInk ? INK : CREAM, duration: 0.4, ease: "none" },
-              at,
-            );
-          }
-        }
-      });
     },
     { scope: root },
   );
 
-  // Names are an event, not a scrub: each beat change slams the outgoing name
-  // out and the incoming one in, rather than smearing both across the scroll.
+  // One event per beat. The can spins two full turns and the label swap is
+  // buried at the midpoint, where it is edge-on and moving fastest, so the
+  // change is never seen. Colour, nav and copy ride the same timeline, which is
+  // what makes it read as a single transformation instead of a texture pop.
   useGSAP(
     () => {
       const from = previous.current;
@@ -117,27 +89,82 @@ export default function FlavorScroll() {
       const articles = gsap.utils.toArray<HTMLElement>("[data-flavor-name]");
       const outgoing = splits.current[from];
       const incoming = splits.current[active];
-      if (!outgoing || !incoming) return;
+      const bg = document.getElementById("bg");
+      const nav = document.getElementById("site-nav");
+      const flavor = FLAVORS[active];
+      const navColor = flavor.id === "pineapple" ? INK : CREAM;
 
-      gsap.to(outgoing.lines, SLAM_OUT);
-      gsap.to(articles[from], { autoAlpha: 0, duration: 0.3, delay: 0.25 });
+      // A fast scroll can outrun the spin; drop the in-flight one and pick up
+      // from wherever it stopped rather than queueing.
+      spinTimeline.current?.kill();
 
-      gsap.set(articles[active], { autoAlpha: 1 });
-      gsap.fromTo(incoming.lines, SLAM_FROM, SLAM_IN);
-      gsap.fromTo(
+      if (reducedMotion) {
+        setWorn(active);
+        articles.forEach((article, i) =>
+          gsap.set(article, { autoAlpha: i === active ? 1 : 0 }),
+        );
+        gsap.set(incoming.lines, { yPercent: 0, autoAlpha: 1 });
+        if (bg) gsap.set(bg, { backgroundColor: flavor.color });
+        if (nav) gsap.set(nav, { color: navColor });
+        return;
+      }
+
+      const SPIN = 0.9;
+      const half = SPIN / 2;
+      const direction = active > from ? 1 : -1;
+
+      const timeline = gsap.timeline({
+        onComplete: () => setWorn(activeRef.current),
+      });
+      spinTimeline.current = timeline;
+
+      timeline.to(
+        canSpin,
+        {
+          current: canSpin.current + direction * 2 * (Math.PI * 2),
+          duration: SPIN,
+          ease: "power3.inOut",
+        },
+        0,
+      );
+
+      timeline.call(() => setWorn(active), undefined, half);
+
+      if (bg) {
+        timeline.to(
+          bg,
+          {
+            backgroundColor: flavor.color,
+            duration: 0.5,
+            ease: "power2.inOut",
+          },
+          half - 0.25,
+        );
+      }
+
+      if (nav) {
+        timeline.to(
+          nav,
+          { color: navColor, duration: 0.5, ease: "power2.inOut" },
+          half - 0.25,
+        );
+      }
+
+      if (outgoing) {
+        timeline.to(outgoing.lines, SLAM_OUT, 0);
+        timeline.to(articles[from], { autoAlpha: 0, duration: 0.3 }, 0.25);
+      }
+
+      timeline.set(articles[active], { autoAlpha: 1 }, half - 0.1);
+      timeline.fromTo(incoming.lines, SLAM_FROM, SLAM_IN, half - 0.1);
+      timeline.fromTo(
         articles[active].querySelectorAll("[data-sub]"),
         { y: 20, autoAlpha: 0 },
-        {
-          y: 0,
-          autoAlpha: 1,
-          duration: 0.7,
-          stagger: 0.06,
-          ease: "power3.out",
-          delay: 0.12,
-        },
+        { y: 0, autoAlpha: 1, duration: 0.7, stagger: 0.06, ease: "power3.out" },
+        half,
       );
     },
-    { dependencies: [active], scope: root },
+    { dependencies: [active, reducedMotion], scope: root },
   );
 
   return (
@@ -147,7 +174,7 @@ export default function FlavorScroll() {
       <div className="sticky top-0 h-[100svh] overflow-hidden">
         <View className="pointer-events-none absolute inset-0">
           <Suspense fallback={null}>
-            <FlavorScrollScene flavor={active} />
+            <FlavorScrollScene flavor={worn} />
           </Suspense>
         </View>
 
@@ -162,7 +189,7 @@ export default function FlavorScroll() {
             <article
               key={flavor.id}
               data-flavor-name
-              className="absolute bottom-16 left-6 right-6 md:bottom-auto md:left-10 md:right-auto md:top-1/2 md:w-[38%] md:-translate-y-1/2"
+              className="absolute bottom-16 left-6 right-6 md:bottom-auto md:left-10 md:right-auto md:top-1/2 md:w-[42%] md:-translate-y-1/2"
             >
               <p
                 data-sub
@@ -171,7 +198,7 @@ export default function FlavorScroll() {
                 {String(i + 1).padStart(2, "0")} /{" "}
                 {String(BEATS).padStart(2, "0")}
               </p>
-              <h2 className="wordmark mt-3 text-[clamp(2.5rem,7vw,5.5rem)] leading-[0.85] text-cream">
+              <h2 className="wordmark mt-3 text-[clamp(2.25rem,6vw,5rem)] leading-[0.85] text-cream">
                 {flavor.name}
               </h2>
               <p
