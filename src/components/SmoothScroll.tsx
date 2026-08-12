@@ -15,7 +15,9 @@ gsap.registerPlugin(useGSAP, ScrollTrigger);
  */
 export default function SmoothScroll() {
   useGSAP(() => {
-    const lenis = new Lenis({ lerp: 0.1 });
+    // `anchors` routes in-page links through Lenis; a native jump would fight
+    // the smoothing and desync every scrubbed ScrollTrigger on the way past.
+    const lenis = new Lenis({ lerp: 0.1, anchors: true });
 
     lenis.on("scroll", ScrollTrigger.update);
 

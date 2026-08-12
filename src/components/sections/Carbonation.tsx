@@ -6,6 +6,7 @@ import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import CarbonationScene from "@/components/canvas/CarbonationScene";
+import { INK } from "@/lib/flavors";
 import { carbonationProgress } from "@/lib/scrollState";
 
 gsap.registerPlugin(useGSAP, ScrollTrigger);
@@ -30,6 +31,22 @@ export default function Carbonation() {
           carbonationProgress.current = self.progress;
         },
       });
+
+      // Land the colour plate on ink before the grid's own ink panel arrives,
+      // so the section boundary isn't a hard cyan-to-black cut.
+      const bg = document.getElementById("bg");
+      if (bg) {
+        gsap.to(bg, {
+          backgroundColor: INK,
+          ease: "none",
+          scrollTrigger: {
+            trigger: root.current,
+            start: "center center",
+            end: "bottom bottom",
+            scrub: true,
+          },
+        });
+      }
 
       gsap.from("[data-stat]", {
         y: 24,

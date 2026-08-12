@@ -1,8 +1,32 @@
+"use client";
+
+import { useRef } from "react";
+import { useGSAP } from "@gsap/react";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { FLAVORS } from "@/lib/flavors";
 
+gsap.registerPlugin(useGSAP, ScrollTrigger);
+
 export default function FlavorGrid() {
+  const root = useRef<HTMLElement>(null!);
+
+  useGSAP(
+    () => {
+      gsap.from("[data-card]", {
+        y: 60,
+        autoAlpha: 0,
+        duration: 0.8,
+        stagger: 0.1,
+        ease: "power3.out",
+        scrollTrigger: { trigger: "[data-cards]", start: "top 80%" },
+      });
+    },
+    { scope: root },
+  );
+
   return (
-    <section className="relative bg-ink">
+    <section ref={root} className="relative bg-ink">
       <div className="mx-auto max-w-7xl px-6 py-24 md:px-10 md:py-32">
         <p className="text-[0.7rem] uppercase tracking-[0.3em] text-cream/60">
           All four
@@ -11,11 +35,15 @@ export default function FlavorGrid() {
           Pick a side
         </h2>
 
-        <ul className="mt-16 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        <ul
+          data-cards
+          className="mt-16 grid gap-5 sm:grid-cols-2 lg:grid-cols-4"
+        >
           {FLAVORS.map((flavor, i) => (
             <li
               key={flavor.id}
-              className="group flex aspect-[3/4] flex-col justify-between rounded-3xl p-7 transition-transform duration-500 ease-out hover:-translate-y-2"
+              data-card
+              className="flex aspect-[3/4] flex-col justify-between rounded-3xl p-7 transition-transform duration-500 ease-out hover:-translate-y-2"
               style={{ backgroundColor: flavor.color }}
             >
               <span className="text-[0.7rem] uppercase tracking-[0.3em] text-cream/70">

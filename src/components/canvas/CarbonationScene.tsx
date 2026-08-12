@@ -13,9 +13,14 @@ export default function CarbonationScene() {
   const viewport = useThree((state) => state.viewport);
   const riser = useRef<THREE.Group>(null!);
   const spinner = useRef<THREE.Group>(null!);
+  const bubbleFade = useRef(1);
 
   useFrame((state, delta) => {
     const progress = carbonationProgress.current;
+
+    // The colour plate turns to ink over the back half of this section, and
+    // pale bubbles at low alpha go muddy against it — retire them instead.
+    bubbleFade.current = 1 - THREE.MathUtils.smoothstep(progress, 0.6, 0.95);
 
     // Rise from below the fold to just above centre as the section scrolls.
     riser.current.position.y = THREE.MathUtils.lerp(
@@ -43,6 +48,7 @@ export default function CarbonationScene() {
           rise={1}
           opacity={0.3}
           seed={7}
+          fade={bubbleFade}
         />
 
         <group ref={riser} scale={scale}>

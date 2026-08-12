@@ -14,6 +14,9 @@ type BubblesProps = {
   color?: string;
   opacity?: number;
   seed?: number;
+  /** Live multiplier on opacity, read every frame. Lets a scroll-driven parent
+   *  fade the field out without re-rendering React 60 times a second. */
+  fade?: { current: number };
 };
 
 /** Deterministic PRNG so server and client agree and reloads look identical. */
@@ -37,8 +40,10 @@ export default function Bubbles({
   color = "#FFF4E0",
   opacity = 0.22,
   seed = 1,
+  fade,
 }: BubblesProps) {
   const mesh = useRef<THREE.InstancedMesh>(null!);
+  const material = useRef<THREE.MeshStandardMaterial>(null!);
   const dummy = useMemo(() => new THREE.Object3D(), []);
 
   const bubbles = useMemo(() => {
@@ -79,6 +84,11 @@ export default function Bubbles({
     }
 
     mesh.current.instanceMatrix.needsUpdate = true;
+
+    if (fade) {
+      material.current.opacity = opacity * fade.current;
+      material.current.visible = material.current.opacity > 0.001;
+    }
   });
 
   return (
@@ -89,6 +99,7 @@ export default function Bubbles({
     >
       <sphereGeometry args={[1, 14, 12]} />
       <meshStandardMaterial
+        ref={material}
         color={color}
         transparent
         opacity={opacity}
