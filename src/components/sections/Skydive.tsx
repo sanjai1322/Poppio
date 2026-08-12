@@ -19,30 +19,25 @@ export default function Skydive() {
       // canvas; fade it in with the section rather than cutting to it.
       const plate = document.getElementById("skydive-bg");
       if (plate) {
-        gsap.fromTo(
-          plate,
-          { opacity: 0 },
-          {
-            opacity: 1,
-            ease: "none",
+        // One timeline, not two tweens. Two scrubbed tweens on the same
+        // property fight: the fade-out records its start value as 0 and keeps
+        // re-applying it while parked at progress 0, cancelling the fade-in.
+        gsap
+          .timeline({
             scrollTrigger: {
               trigger: root.current,
               start: "top bottom",
-              end: "top top",
+              end: "bottom top",
               scrub: true,
             },
-          },
-        );
-        gsap.to(plate, {
-          opacity: 0,
-          ease: "none",
-          scrollTrigger: {
-            trigger: root.current,
-            start: "bottom bottom",
-            end: "bottom top",
-            scrub: true,
-          },
-        });
+          })
+          .fromTo(
+            plate,
+            { opacity: 0 },
+            { opacity: 1, duration: 1, ease: "none" },
+          )
+          .to(plate, { opacity: 1, duration: 2, ease: "none" })
+          .to(plate, { opacity: 0, duration: 1, ease: "none" });
       }
 
       gsap.matchMedia().add("(prefers-reduced-motion: no-preference)", () => {
@@ -59,7 +54,7 @@ export default function Skydive() {
   );
 
   return (
-    <section ref={root} className="relative h-[200vh]">
+    <section id="skydive" ref={root} className="relative h-[250vh]">
       <div className="sticky top-0 flex h-[100svh] items-center justify-center overflow-hidden">
         <View className="pointer-events-none absolute inset-0">
           <Suspense fallback={null}>
