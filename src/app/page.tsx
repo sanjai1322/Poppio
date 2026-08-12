@@ -2,6 +2,7 @@ import Background from "@/components/Background";
 import ViewCanvas from "@/components/canvas/ViewCanvas";
 import FlavorBackdrop from "@/components/FlavorBackdrop";
 import Nav from "@/components/Nav";
+import Preloader from "@/components/Preloader";
 import ScrollProgress from "@/components/ScrollProgress";
 import SmoothScroll from "@/components/SmoothScroll";
 import Hero from "@/components/sections/Hero";
@@ -29,6 +30,7 @@ export default function Home() {
       <ViewCanvas />
       <Nav />
       <ScrollProgress />
+      <Preloader />
       <main className="relative z-20">
         <Hero />
         <FlavorScroll />
