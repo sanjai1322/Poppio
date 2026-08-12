@@ -48,13 +48,15 @@ export default function Carbonation() {
         });
       }
 
-      gsap.from("[data-stat]", {
-        y: 24,
-        autoAlpha: 0,
-        duration: 0.6,
-        stagger: 0.12,
-        ease: "power2.out",
-        scrollTrigger: { trigger: root.current, start: "top 60%" },
+      gsap.matchMedia().add("(prefers-reduced-motion: no-preference)", () => {
+        gsap.from("[data-stat]", {
+          y: 24,
+          autoAlpha: 0,
+          duration: 0.6,
+          stagger: 0.12,
+          ease: "power2.out",
+          scrollTrigger: { trigger: root.current, start: "top 60%" },
+        });
       });
     },
     { scope: root },
@@ -62,7 +64,7 @@ export default function Carbonation() {
 
   return (
     <section id="why" ref={root} className="relative h-[200vh]">
-      <div className="sticky top-0 flex h-[100svh] items-center overflow-hidden">
+      <div className="sticky top-0 flex h-[100svh] items-start overflow-hidden pt-24 md:items-center md:pt-0">
         <View className="pointer-events-none absolute inset-0">
           <Suspense fallback={null}>
             <CarbonationScene />
@@ -87,7 +89,7 @@ export default function Carbonation() {
               nothing you need a chemistry degree to pronounce.
             </p>
 
-            <dl className="mt-12 grid grid-cols-3 gap-6 border-t border-cream/20 pt-8">
+            <dl className="mt-8 grid grid-cols-3 gap-6 border-t border-cream/20 pt-8 md:mt-12">
               {STATS.map((stat) => (
                 <div key={stat.label} data-stat>
                   <dt className="wordmark text-4xl text-cream md:text-5xl">

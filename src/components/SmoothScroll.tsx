@@ -15,6 +15,16 @@ gsap.registerPlugin(useGSAP, ScrollTrigger);
  */
 export default function SmoothScroll() {
   useGSAP(() => {
+    // Mobile browsers resize the viewport when the URL bar collapses; without
+    // this every pinned/sticky measurement re-runs and the page jumps.
+    ScrollTrigger.config({ ignoreMobileResize: true });
+
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      // Hand scrolling back to the browser. ScrollTrigger still works off
+      // native scroll, so the scroll-linked sections keep functioning.
+      return;
+    }
+
     // `anchors` routes in-page links through Lenis; a native jump would fight
     // the smoothing and desync every scrubbed ScrollTrigger on the way past.
     const lenis = new Lenis({ lerp: 0.1, anchors: true });

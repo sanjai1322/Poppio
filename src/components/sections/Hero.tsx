@@ -13,13 +13,15 @@ export default function Hero() {
 
   useGSAP(
     () => {
-      gsap.from("[data-hero-in]", {
-        y: 40,
-        autoAlpha: 0,
-        duration: 1,
-        stagger: 0.12,
-        ease: "power3.out",
-        delay: 0.15,
+      gsap.matchMedia().add("(prefers-reduced-motion: no-preference)", () => {
+        gsap.from("[data-hero-in]", {
+          y: 40,
+          autoAlpha: 0,
+          duration: 1,
+          stagger: 0.12,
+          ease: "power3.out",
+          delay: 0.15,
+        });
       });
     },
     { scope: root },

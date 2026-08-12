@@ -13,13 +13,15 @@ export default function FlavorGrid() {
 
   useGSAP(
     () => {
-      gsap.from("[data-card]", {
-        y: 60,
-        autoAlpha: 0,
-        duration: 0.8,
-        stagger: 0.1,
-        ease: "power3.out",
-        scrollTrigger: { trigger: "[data-cards]", start: "top 80%" },
+      gsap.matchMedia().add("(prefers-reduced-motion: no-preference)", () => {
+        gsap.from("[data-card]", {
+          y: 60,
+          autoAlpha: 0,
+          duration: 0.8,
+          stagger: 0.1,
+          ease: "power3.out",
+          scrollTrigger: { trigger: "[data-cards]", start: "top 80%" },
+        });
       });
     },
     { scope: root },

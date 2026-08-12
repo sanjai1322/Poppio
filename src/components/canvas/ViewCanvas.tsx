@@ -2,16 +2,24 @@
 
 import { Canvas } from "@react-three/fiber";
 import { View, Preload } from "@react-three/drei";
+import { usePerfTier } from "@/lib/usePerfTier";
 
 /**
  * The one and only WebGL context. Fixed behind the content layer; every
  * section places its 3D by rendering a <View>, which this port draws into.
  */
 export default function ViewCanvas() {
+  const { isMobile } = usePerfTier();
+
   return (
     <Canvas
-      dpr={[1, 2]}
-      gl={{ antialias: true, alpha: true, powerPreference: "high-performance" }}
+      // Retina phones will happily render 3x and melt; 1.5 is plenty here.
+      dpr={isMobile ? [1, 1.5] : [1, 2]}
+      gl={{
+        antialias: !isMobile,
+        alpha: true,
+        powerPreference: "high-performance",
+      }}
       style={{
         position: "fixed",
         inset: 0,

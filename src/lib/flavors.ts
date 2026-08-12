@@ -17,7 +17,7 @@ export const FLAVORS: Flavor[] = [
     notes: "mango + passionfruit",
     tagline: "Sunset, carbonated.",
     color: "#F97316",
-    wrap: "/wraps/poppio_mango.png",
+    wrap: "/wraps/poppio_mango.webp",
   },
   {
     id: "guava",
@@ -25,7 +25,7 @@ export const FLAVORS: Flavor[] = [
     notes: "guava + berries",
     tagline: "Sweet with a wild streak.",
     color: "#EC4899",
-    wrap: "/wraps/poppio_guava.png",
+    wrap: "/wraps/poppio_guava.webp",
   },
   {
     id: "pineapple",
@@ -33,7 +33,7 @@ export const FLAVORS: Flavor[] = [
     notes: "pineapple + lime",
     tagline: "Sharp. Bright. Unbothered.",
     color: "#84CC16",
-    wrap: "/wraps/poppio_pineapple.png",
+    wrap: "/wraps/poppio_pineapple.webp",
   },
   {
     id: "dragon",
@@ -41,7 +41,7 @@ export const FLAVORS: Flavor[] = [
     notes: "dragonfruit + blueberry",
     tagline: "Looks unreal. Tastes better.",
     color: "#06B6D4",
-    wrap: "/wraps/poppio_dragon.png",
+    wrap: "/wraps/poppio_dragon.webp",
   },
 ];
 
