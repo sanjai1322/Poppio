@@ -6,7 +6,7 @@ const LINKS = [
 
 export default function Nav() {
   return (
-    <header className="fixed inset-x-0 top-0 z-50 flex items-center justify-between px-6 py-5 mix-blend-difference md:px-10">
+    <header className="fixed inset-x-0 top-0 z-50 flex items-center justify-between px-6 py-5 md:px-10">
       <a href="#top" className="wordmark text-2xl text-cream md:text-3xl">
         POPPIO
       </a>

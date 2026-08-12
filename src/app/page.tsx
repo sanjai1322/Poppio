@@ -1,4 +1,5 @@
 import Background from "@/components/Background";
+import ViewCanvas from "@/components/canvas/ViewCanvas";
 import Nav from "@/components/Nav";
 import Hero from "@/components/sections/Hero";
 import FlavorScroll from "@/components/sections/FlavorScroll";
@@ -11,6 +12,7 @@ export default function Home() {
     <>
       {/* z-0 colour plate · z-10 shared canvas · z-20 content */}
       <Background />
+      <ViewCanvas />
       <Nav />
       <main className="relative z-20">
         <Hero />
