@@ -63,7 +63,10 @@ export default function Can({ flavor = 0, ...props }: CanProps) {
 
   // Clone per instance and give each its own label material, so two cans on
   // screen can wear different flavours without fighting over one material.
-  const { object, label } = useMemo(() => {
+  const { object, label } = useMemo<{
+    object: THREE.Object3D;
+    label: THREE.MeshStandardMaterial | null;
+  }>(() => {
     const object = scene.clone(true);
     let label: THREE.MeshStandardMaterial | null = null;
 
