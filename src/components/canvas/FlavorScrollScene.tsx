@@ -49,9 +49,9 @@ export default function FlavorScrollScene({ flavor }: { flavor: number }) {
 
   // Portrait has no room to offset the can beside the flavour name — centre it
   // above the copy instead of pushing it off the right edge.
-  const scale = (viewport.height * (isMobile ? 0.36 : 0.52)) / CAN_HEIGHT;
-  const x = isMobile ? 0 : viewport.width * 0.16;
-  const y = viewport.height * (isMobile ? 0.2 : 0.12);
+  const scale = (viewport.height * (isMobile ? 0.5 : 0.76)) / CAN_HEIGHT;
+  const x = isMobile ? 0 : viewport.width * 0.22;
+  const y = viewport.height * (isMobile ? 0.16 : 0.02);
 
   return (
     <>

@@ -8,6 +8,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import FlavorScrollScene from "@/components/canvas/FlavorScrollScene";
 import { FLAVORS } from "@/lib/flavors";
 import { flavorProgress } from "@/lib/scrollState";
+import { activeFlavorStore, flavorSectionStore } from "@/lib/flavorStore";
 
 gsap.registerPlugin(useGSAP, ScrollTrigger);
 
@@ -34,8 +35,13 @@ export default function FlavorScroll() {
           start: "top top",
           end: "bottom bottom",
           scrub: true,
+          onToggle: (self) => flavorSectionStore.set(self.isActive),
           onUpdate: (self) => {
             flavorProgress.current = self.progress;
+            // onToggle alone misses a scroll that lands inside the section in
+            // one frame (anchor jump, restored position), leaving the backdrop
+            // stuck invisible.
+            flavorSectionStore.set(true);
 
             const index = Math.min(
               BEATS - 1,
@@ -44,6 +50,7 @@ export default function FlavorScroll() {
             if (index !== activeRef.current) {
               activeRef.current = index;
               setActive(index);
+              activeFlavorStore.set(index);
             }
           },
         },
@@ -95,17 +102,19 @@ export default function FlavorScroll() {
             The lineup
           </p>
 
+          {/* Copy holds the left third, vertically centred; the can owns the
+              right of the frame and the numeral bleeds off behind it. */}
           {FLAVORS.map((flavor, i) => (
             <article
               key={flavor.id}
               data-flavor-name
-              className="absolute inset-x-6 bottom-16 md:inset-x-10 md:bottom-24"
+              className="absolute bottom-16 left-6 right-6 md:bottom-auto md:left-10 md:right-auto md:top-1/2 md:w-[38%] md:-translate-y-1/2"
             >
               <p className="text-[0.7rem] uppercase tracking-[0.3em] text-cream/60">
                 {String(i + 1).padStart(2, "0")} /{" "}
                 {String(BEATS).padStart(2, "0")}
               </p>
-              <h2 className="wordmark mt-3 text-[clamp(2.5rem,9vw,7rem)] leading-[0.85] text-cream">
+              <h2 className="wordmark mt-3 text-[clamp(2.5rem,7vw,5.5rem)] leading-[0.85] text-cream">
                 {flavor.name}
               </h2>
               <p className="mt-4 text-sm uppercase tracking-[0.2em] text-cream/70">

@@ -4,6 +4,7 @@ import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Lenis from "lenis";
+import { setLenis } from "@/lib/lenisStore";
 import "lenis/dist/lenis.css";
 
 gsap.registerPlugin(useGSAP, ScrollTrigger);
@@ -29,13 +30,19 @@ export default function SmoothScroll() {
     // the smoothing and desync every scrubbed ScrollTrigger on the way past.
     const lenis = new Lenis({ lerp: 0.1, anchors: true });
 
+    setLenis(lenis);
     lenis.on("scroll", ScrollTrigger.update);
+
+    if (process.env.NODE_ENV === "development") {
+      (window as unknown as { __lenis?: Lenis }).__lenis = lenis;
+    }
 
     const raf = (time: number) => lenis.raf(time * 1000);
     gsap.ticker.add(raf);
     gsap.ticker.lagSmoothing(0);
 
     return () => {
+      setLenis(null);
       gsap.ticker.remove(raf);
       gsap.ticker.lagSmoothing(500, 33);
       lenis.destroy();
