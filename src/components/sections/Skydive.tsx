@@ -7,16 +7,29 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import SkydiveScene from "@/components/canvas/SkydiveScene";
 import { SLAM_FROM, SLAM_IN, splitForSlam } from "@/lib/slam";
+import { SKYDIVE_END, SKYDIVE_ID, SKYDIVE_START } from "@/lib/skydive";
 
 gsap.registerPlugin(useGSAP, ScrollTrigger);
 
 export default function Skydive() {
   const root = useRef<HTMLElement>(null!);
+  const stage = useRef<HTMLDivElement>(null!);
 
   useGSAP(
     () => {
-      // The gradient plate lives outside <main> so it can sit behind the
-      // canvas; fade it in with the section rather than cutting to it.
+      // A real pin rather than position:sticky. ScrollTrigger inserts its own
+      // spacer, so the section needs no hand-computed height — the pinned
+      // duration below is the single source of the section's scroll length.
+      ScrollTrigger.create({
+        trigger: root.current,
+        start: SKYDIVE_START,
+        end: SKYDIVE_END,
+        pin: stage.current,
+        anticipatePin: 1,
+        // Pins must be measured before anything that depends on their layout.
+        refreshPriority: 1,
+      });
+
       const plate = document.getElementById("skydive-bg");
       if (plate) {
         // One timeline, not two tweens. Two scrubbed tweens on the same
@@ -54,8 +67,11 @@ export default function Skydive() {
   );
 
   return (
-    <section id="skydive" ref={root} className="relative h-[250vh]">
-      <div className="sticky top-0 flex h-[100svh] items-center justify-center overflow-hidden">
+    <section id={SKYDIVE_ID} ref={root} className="relative">
+      <div
+        ref={stage}
+        className="flex h-[100svh] items-center justify-center overflow-hidden"
+      >
         <View className="pointer-events-none absolute inset-0">
           <Suspense fallback={null}>
             <SkydiveScene />

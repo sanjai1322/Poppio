@@ -16,7 +16,7 @@ export const FLAVORS: Flavor[] = [
     name: "Mango Passion",
     notes: "mango + passionfruit",
     tagline: "Sunset, carbonated.",
-    color: "#F97316",
+    color: "#E8480F",
     wrap: "/wraps/poppio_mango.webp",
   },
   {

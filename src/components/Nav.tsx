@@ -21,7 +21,7 @@ export default function Nav() {
       <a href="#top" className="wordmark text-2xl md:text-3xl">
         POPPIO
       </a>
-      <nav className="flex gap-6 text-xs uppercase tracking-[0.2em]">
+      <nav className="flex gap-6 text-xs font-medium uppercase tracking-[0.2em]">
         {LINKS.map((link) => (
           <a
             key={link.href}

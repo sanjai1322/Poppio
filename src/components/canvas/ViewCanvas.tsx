@@ -7,6 +7,9 @@ import { usePerfTier } from "@/lib/usePerfTier";
 /**
  * The one and only WebGL context. Fixed behind the content layer; every
  * section places its 3D by rendering a <View>, which this port draws into.
+ *
+ * Nothing is mounted at the Canvas root on purpose: View takes over the render
+ * loop, so root-level objects would never be drawn.
  */
 export default function ViewCanvas() {
   const { isMobile } = usePerfTier();

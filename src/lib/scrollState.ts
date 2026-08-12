@@ -8,6 +8,9 @@
 export const flavorProgress = { current: 0 };
 export const carbonationProgress = { current: 0 };
 
+/** 0 = hero layout, 1 = cluster layout. Written by MeetAllFour's ScrollTrigger. */
+export const clusterProgress = { current: 0 };
+
 /**
  * Extra Y rotation, in radians, applied to the flavour-scroll can on top of its
  * front-facing rest pose. GSAP tweens this on each beat change; the render loop

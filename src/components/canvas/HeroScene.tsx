@@ -92,13 +92,21 @@ export default function HeroScene() {
   const idle = reducedMotion ? 0 : 1;
 
   // Lay the cans out relative to what the camera can actually see, so the
-  // composition survives any aspect ratio instead of only 16:9. On a narrow
-  // portrait viewport two half-height cans collide with the headline, so they
-  // shrink and move to opposite corners, leaving the centre column readable.
-  const scale =
-    (viewport.height * (isMobile ? 0.3 : 0.44)) / CAN_HEIGHT;
-  const x = viewport.width * (isMobile ? 0.3 : 0.3);
-  const y = isMobile ? viewport.height * 0.3 : viewport.height * 0.04;
+  // composition survives any aspect ratio instead of only the one it was
+  // designed against. On a narrow portrait viewport two half-height cans
+  // collide with the headline, so they shrink and move to opposite corners.
+  const x = viewport.width * (isMobile ? 0.31 : 0.315);
+
+  // Half-width a tilted can sweeps at scale 1: its own width plus what the
+  // z-tilt adds. Sizing on height alone clips the cans off the sides as soon
+  // as the viewport is squarer than the layout was drawn for.
+  const TILTED_HALF_WIDTH = 0.46;
+  const byHeight = (viewport.height * (isMobile ? 0.34 : 0.62)) / CAN_HEIGHT;
+  const byWidth =
+    (viewport.width * 0.5 - x - viewport.width * 0.02) / TILTED_HALF_WIDTH;
+  const scale = Math.min(byHeight, byWidth);
+
+  const y = isMobile ? viewport.height * 0.3 : viewport.height * -0.1;
 
   return (
     <>
@@ -129,7 +137,7 @@ export default function HeroScene() {
         flavor={3}
         turn={22}
         sway={6}
-        position={[x, isMobile ? -y : viewport.height * -0.07, -0.6]}
+        position={[x, isMobile ? -y : viewport.height * -0.14, -0.6]}
         rotation={[0, 0, -0.28]}
         scale={scale * 0.9}
       />

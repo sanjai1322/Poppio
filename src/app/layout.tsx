@@ -1,8 +1,14 @@
 import type { Metadata } from "next";
-import { Archivo, Archivo_Black } from "next/font/google";
+import { Archivo_Black, DM_Sans } from "next/font/google";
 import "./globals.css";
 
-const archivo = Archivo({
+/**
+ * Two roles, strictly separated. Archivo Black is reserved for display
+ * moments — hero headline, section titles, campaign statements, flavour
+ * names. DM Sans carries everything functional: navigation, buttons, copy,
+ * product information, UI.
+ */
+const dmSans = DM_Sans({
   subsets: ["latin"],
   variable: "--font-sans",
   display: "swap",
@@ -28,7 +34,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${archivo.variable} ${archivoBlack.variable}`}>
+      <body className={`${dmSans.variable} ${archivoBlack.variable}`}>
         {children}
       </body>
     </html>

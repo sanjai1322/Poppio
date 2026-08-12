@@ -46,6 +46,31 @@ export default function FlavorScroll() {
         );
       });
 
+      // The cluster section hands the page over on dragon cyan, but this
+      // section opens on mango and only repaints on a beat *change* — so beat
+      // one would sit on the wrong colour. Fade it back on the approach.
+      //
+      // fromTo with immediateRender off: a bare `to` records its start value
+      // whenever it first renders and can stamp that colour at load.
+      const approachBg = document.getElementById("bg");
+      if (approachBg) {
+        gsap.fromTo(
+          approachBg,
+          { backgroundColor: FLAVORS[FLAVORS.length - 1].color },
+          {
+            backgroundColor: FLAVORS[0].color,
+            ease: "none",
+            immediateRender: false,
+            scrollTrigger: {
+              trigger: root.current,
+              start: "top bottom",
+              end: "top top",
+              scrub: true,
+            },
+          },
+        );
+      }
+
       ScrollTrigger.create({
         trigger: root.current,
         start: "top top",

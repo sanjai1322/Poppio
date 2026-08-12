@@ -1,10 +1,8 @@
 "use client";
 
-import { Suspense, useRef } from "react";
-import { View } from "@react-three/drei";
+import { useRef } from "react";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
-import HeroScene from "@/components/canvas/HeroScene";
 import { SLAM_FROM, SLAM_IN, splitForSlam } from "@/lib/slam";
 
 gsap.registerPlugin(useGSAP);
@@ -40,16 +38,12 @@ export default function Hero() {
       ref={root}
       className="relative flex min-h-[100svh] flex-col items-center justify-center overflow-hidden px-6 py-28 text-center"
     >
-      {/* Tracked by the shared canvas — the cans draw behind this content. */}
-      <View className="pointer-events-none absolute inset-0">
-        <Suspense fallback={null}>
-          <HeroScene />
-        </Suspense>
-      </View>
+      {/* Cans are now rendered at the Canvas root level via CanCluster —
+          no View needed here. */}
 
       <p
         data-hero-in
-        className="relative text-[0.7rem] uppercase tracking-[0.35em] text-cream/70"
+        className="relative text-[0.7rem] font-medium uppercase tracking-[0.35em] text-cream/70"
       >
         Prebiotic soda
       </p>
@@ -73,7 +67,7 @@ export default function Hero() {
       <a
         data-hero-in
         href="#flavours"
-        className="relative mt-10 rounded-full bg-cream px-8 py-4 text-xs uppercase tracking-[0.2em] text-ink transition-transform duration-300 hover:scale-105"
+        className="relative mt-10 rounded-full bg-cream px-8 py-4 text-xs font-bold uppercase tracking-[0.2em] text-ink transition-transform duration-300 hover:scale-105"
       >
         Meet the four
       </a>
