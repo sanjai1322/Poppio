@@ -4,34 +4,54 @@ import { useRef } from "react";
 import * as THREE from "three";
 import { useFrame, useThree } from "@react-three/fiber";
 import { Float, PerspectiveCamera } from "@react-three/drei";
-import Can, { CAN_CENTER_Y, CAN_HEIGHT } from "./Can";
+import Can, { CAN_CENTER_Y, CAN_FRONT_Y, CAN_HEIGHT } from "./Can";
 import Bubbles from "./Bubbles";
 import Lighting from "./Lighting";
 import { usePerfTier } from "@/lib/usePerfTier";
 
 type IdleCanProps = {
   flavor: number;
-  spin: number;
+  /** Degrees off dead-on, so the pair reads as two cans rather than clones. */
+  turn: number;
+  sway: number;
   position: [number, number, number];
   rotation?: [number, number, number];
   scale?: number;
 };
 
-/** A can that turns slowly on its own axis, wrapped in a gentle float. */
-function IdleCan({ flavor, spin, position, rotation, scale }: IdleCanProps) {
+/**
+ * A can held facing the viewer, swaying gently around that pose.
+ *
+ * It deliberately does NOT spin continuously. A continuous spin has no rest
+ * angle, so the wordmark — the whole point of the hero shot — faces the camera
+ * only in passing and any given frame is a coin flip.
+ */
+function IdleCan({
+  flavor,
+  turn,
+  sway,
+  position,
+  rotation,
+  scale,
+}: IdleCanProps) {
   const spinner = useRef<THREE.Group>(null!);
   const { reducedMotion } = usePerfTier();
   const float = reducedMotion ? 0 : 1;
+  const base = CAN_FRONT_Y + THREE.MathUtils.degToRad(turn);
 
-  useFrame((_, delta) => {
-    spinner.current.rotation.y += delta * spin;
+  useFrame((state) => {
+    spinner.current.rotation.y =
+      base +
+      Math.sin(state.clock.elapsedTime * 0.45 + turn) *
+        THREE.MathUtils.degToRad(sway) *
+        float;
   });
 
   return (
     <Float
       speed={1.4 * float}
-      rotationIntensity={0.25 * float}
-      floatIntensity={0.6 * float}
+      rotationIntensity={0.12 * float}
+      floatIntensity={0.5 * float}
     >
       <group position={position} rotation={rotation} scale={scale}>
         <group ref={spinner}>
@@ -52,8 +72,8 @@ export default function HeroScene() {
   // portrait viewport two half-height cans collide with the headline, so they
   // shrink and move to opposite corners, leaving the centre column readable.
   const scale =
-    (viewport.height * (isMobile ? 0.3 : 0.46)) / CAN_HEIGHT;
-  const x = viewport.width * (isMobile ? 0.3 : 0.33);
+    (viewport.height * (isMobile ? 0.3 : 0.44)) / CAN_HEIGHT;
+  const x = viewport.width * (isMobile ? 0.3 : 0.3);
   const y = isMobile ? viewport.height * 0.3 : viewport.height * 0.04;
 
   return (
@@ -75,14 +95,16 @@ export default function HeroScene() {
 
       <IdleCan
         flavor={0}
-        spin={0.35 * idle}
+        turn={-20}
+        sway={5}
         position={[-x, y, 0]}
         rotation={[0, 0, 0.2]}
         scale={scale}
       />
       <IdleCan
         flavor={3}
-        spin={-0.28 * idle}
+        turn={22}
+        sway={6}
         position={[x, isMobile ? -y : viewport.height * -0.07, -0.6]}
         rotation={[0, 0, -0.28]}
         scale={scale * 0.9}

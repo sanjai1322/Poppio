@@ -11,6 +11,18 @@ export const CAN_URL = "/poppio-can.glb";
 export const CAN_HEIGHT = 1.22;
 export const CAN_CENTER_Y = -CAN_HEIGHT / 2;
 
+/**
+ * Y rotation, in turns, that points the printed front of the label — the
+ * wordmark — at the camera.
+ *
+ * Not zero: the GLB's node carries a baked ~68 degree Y rotation and the wrap
+ * art does not begin at u=0, so `rotation.y = 0` faces somewhere along the
+ * side. Measured against rendered frames, not derived. Every scene that wants
+ * a can facing the viewer must start from this.
+ */
+export const CAN_FRONT_TURNS = 0.9;
+export const CAN_FRONT_Y = CAN_FRONT_TURNS * Math.PI * 2;
+
 const LABEL_MATERIAL = "POPPIO_Label";
 
 useGLTF.preload(CAN_URL);
