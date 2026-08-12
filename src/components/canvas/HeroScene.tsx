@@ -8,6 +8,7 @@ import Can, { CAN_CENTER_Y, CAN_FRONT_Y, CAN_HEIGHT } from "./Can";
 import Bubbles from "./Bubbles";
 import Lighting from "./Lighting";
 import { usePerfTier } from "@/lib/usePerfTier";
+import { pointer, usePointerTracking } from "@/lib/pointer";
 
 type IdleCanProps = {
   flavor: number;
@@ -35,16 +36,33 @@ function IdleCan({
   scale,
 }: IdleCanProps) {
   const spinner = useRef<THREE.Group>(null!);
+  const tilt = useRef<THREE.Group>(null!);
   const { reducedMotion } = usePerfTier();
   const float = reducedMotion ? 0 : 1;
   const base = CAN_FRONT_Y + THREE.MathUtils.degToRad(turn);
 
-  useFrame((state) => {
+  useFrame((state, delta) => {
     spinner.current.rotation.y =
       base +
       Math.sin(state.clock.elapsedTime * 0.45 + turn) *
         THREE.MathUtils.degToRad(sway) *
         float;
+
+    // Lean toward the cursor, damped so it trails rather than snaps, and
+    // unwinds to rest when the pointer leaves the window.
+    const reach = pointer.active && !reducedMotion ? MAX_TILT : 0;
+    tilt.current.rotation.y = THREE.MathUtils.damp(
+      tilt.current.rotation.y,
+      pointer.x * reach,
+      4,
+      delta,
+    );
+    tilt.current.rotation.x = THREE.MathUtils.damp(
+      tilt.current.rotation.x,
+      pointer.y * reach,
+      4,
+      delta,
+    );
   });
 
   return (
@@ -54,15 +72,21 @@ function IdleCan({
       floatIntensity={0.5 * float}
     >
       <group position={position} rotation={rotation} scale={scale}>
-        <group ref={spinner}>
-          <Can flavor={flavor} position={[0, CAN_CENTER_Y, 0]} />
+        <group ref={tilt}>
+          <group ref={spinner}>
+            <Can flavor={flavor} position={[0, CAN_CENTER_Y, 0]} />
+          </group>
         </group>
       </group>
     </Float>
   );
 }
 
+/** Roughly 8 degrees of lean at the edges of the viewport. */
+const MAX_TILT = THREE.MathUtils.degToRad(8);
+
 export default function HeroScene() {
+  usePointerTracking();
   const viewport = useThree((state) => state.viewport);
   const { isMobile, reducedMotion } = usePerfTier();
   const idle = reducedMotion ? 0 : 1;

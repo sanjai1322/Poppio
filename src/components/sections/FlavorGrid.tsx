@@ -60,9 +60,16 @@ export default function FlavorGrid() {
                 type="button"
                 data-card
                 onClick={() => scrollToBeat(i)}
-                className="group relative flex aspect-[3/4] w-full flex-col justify-between rounded-3xl p-7 text-left transition-transform duration-500 ease-out hover:-translate-y-2"
+                className="group relative flex aspect-[3/4] w-full flex-col justify-between rounded-3xl p-7 text-left transition-transform duration-500 ease-out hover:-translate-y-2 hover:scale-[1.02]"
                 style={{ backgroundColor: flavor.color }}
               >
+                {/* Colour bleeding past the card edge on hover. Sits behind
+                    the card's own background, so it only shows as a halo. */}
+                <span
+                  aria-hidden
+                  className="pointer-events-none absolute -inset-4 -z-10 rounded-[2.25rem] opacity-0 blur-2xl transition-opacity duration-500 group-hover:opacity-80"
+                  style={{ backgroundColor: flavor.color }}
+                />
                 <span className="text-[0.7rem] uppercase tracking-[0.3em] text-cream/70">
                   No. {String(i + 1).padStart(2, "0")}
                 </span>
