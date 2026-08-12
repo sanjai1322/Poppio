@@ -8,6 +8,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import CarbonationScene from "@/components/canvas/CarbonationScene";
 import { INK } from "@/lib/flavors";
 import { carbonationProgress } from "@/lib/scrollState";
+import { SLAM_FROM, SLAM_IN, splitForSlam } from "@/lib/slam";
 
 gsap.registerPlugin(useGSAP, ScrollTrigger);
 
@@ -49,6 +50,15 @@ export default function Carbonation() {
       }
 
       gsap.matchMedia().add("(prefers-reduced-motion: no-preference)", () => {
+        const heading = root.current.querySelector("h2");
+        if (heading) {
+          const split = splitForSlam(heading);
+          gsap.fromTo(split.lines, SLAM_FROM, {
+            ...SLAM_IN,
+            scrollTrigger: { trigger: root.current, start: "top 65%" },
+          });
+        }
+
         gsap.from("[data-stat]", {
           y: 24,
           autoAlpha: 0,

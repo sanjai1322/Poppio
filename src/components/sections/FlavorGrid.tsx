@@ -5,6 +5,7 @@ import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { FLAVORS } from "@/lib/flavors";
+import { SLAM_FROM, SLAM_IN, splitForSlam } from "@/lib/slam";
 
 gsap.registerPlugin(useGSAP, ScrollTrigger);
 
@@ -14,6 +15,15 @@ export default function FlavorGrid() {
   useGSAP(
     () => {
       gsap.matchMedia().add("(prefers-reduced-motion: no-preference)", () => {
+        const heading = root.current.querySelector("h2");
+        if (heading) {
+          const split = splitForSlam(heading);
+          gsap.fromTo(split.lines, SLAM_FROM, {
+            ...SLAM_IN,
+            scrollTrigger: { trigger: heading, start: "top 85%" },
+          });
+        }
+
         gsap.from("[data-card]", {
           y: 60,
           autoAlpha: 0,

@@ -5,6 +5,7 @@ import { View } from "@react-three/drei";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import HeroScene from "@/components/canvas/HeroScene";
+import { SLAM_FROM, SLAM_IN, splitForSlam } from "@/lib/slam";
 
 gsap.registerPlugin(useGSAP);
 
@@ -14,13 +15,19 @@ export default function Hero() {
   useGSAP(
     () => {
       gsap.matchMedia().add("(prefers-reduced-motion: no-preference)", () => {
+        const heading = root.current.querySelector("h1");
+        if (heading) {
+          const split = splitForSlam(heading, "words");
+          gsap.fromTo(split.words, SLAM_FROM, { ...SLAM_IN, delay: 0.15 });
+        }
+
         gsap.from("[data-hero-in]", {
           y: 40,
           autoAlpha: 0,
           duration: 1,
           stagger: 0.12,
           ease: "power3.out",
-          delay: 0.15,
+          delay: 0.45,
         });
       });
     },
@@ -47,10 +54,7 @@ export default function Hero() {
         Prebiotic soda
       </p>
 
-      <h1
-        data-hero-in
-        className="wordmark relative mt-6 text-[clamp(3.25rem,13vw,11rem)] leading-[0.82] text-cream"
-      >
+      <h1 className="wordmark relative mt-6 text-[clamp(3.25rem,13vw,11rem)] leading-[0.82] text-cream">
         Tropical
         <br />
         soda with
