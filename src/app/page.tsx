@@ -1,6 +1,7 @@
 import Background from "@/components/Background";
 import ViewCanvas from "@/components/canvas/ViewCanvas";
 import Nav from "@/components/Nav";
+import SmoothScroll from "@/components/SmoothScroll";
 import Hero from "@/components/sections/Hero";
 import FlavorScroll from "@/components/sections/FlavorScroll";
 import Carbonation from "@/components/sections/Carbonation";
@@ -11,6 +12,7 @@ export default function Home() {
   return (
     <>
       {/* z-0 colour plate · z-10 shared canvas · z-20 content */}
+      <SmoothScroll />
       <Background />
       <ViewCanvas />
       <Nav />
