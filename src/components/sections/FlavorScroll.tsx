@@ -6,7 +6,7 @@ import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import FlavorScrollScene from "@/components/canvas/FlavorScrollScene";
-import { FLAVORS } from "@/lib/flavors";
+import { CREAM, FLAVORS, INK } from "@/lib/flavors";
 import { flavorProgress } from "@/lib/scrollState";
 import { activeFlavorStore, flavorSectionStore } from "@/lib/flavorStore";
 
@@ -25,6 +25,7 @@ export default function FlavorScroll() {
       // Looked up directly: selector strings inside useGSAP are scoped to the
       // section, and the colour plate is a sibling of it.
       const bg = document.getElementById("bg");
+      const nav = document.getElementById("site-nav");
 
       gsap.set(names, { autoAlpha: 0, y: 28 });
       gsap.set(names[0], { autoAlpha: 1, y: 0 });
@@ -71,6 +72,21 @@ export default function FlavorScroll() {
             at,
           );
         }
+        // Cream fails contrast on Pineapple Lime, so the bar flips to ink on the
+        // way in and back to cream on the way out — on the colour timeline, so
+        // it rides the same cross-fade and reverses with it.
+        if (nav) {
+          const wantsInk = flavor.id === "pineapple";
+          const leavingInk = FLAVORS[i - 1].id === "pineapple";
+          if (wantsInk || leavingInk) {
+            timeline.to(
+              nav,
+              { color: wantsInk ? INK : CREAM, duration: 0.4, ease: "none" },
+              at,
+            );
+          }
+        }
+
         timeline.to(
           names[i - 1],
           { autoAlpha: 0, y: -28, duration: 0.25, ease: "power2.in" },
