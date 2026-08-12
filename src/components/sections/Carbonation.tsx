@@ -1,3 +1,15 @@
+"use client";
+
+import { Suspense, useRef } from "react";
+import { View } from "@react-three/drei";
+import { useGSAP } from "@gsap/react";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import CarbonationScene from "@/components/canvas/CarbonationScene";
+import { carbonationProgress } from "@/lib/scrollState";
+
+gsap.registerPlugin(useGSAP, ScrollTrigger);
+
 const STATS = [
   { value: "3g", label: "Plant prebiotic fibre" },
   { value: "40", label: "Calories per can" },
@@ -5,10 +17,42 @@ const STATS = [
 ];
 
 export default function Carbonation() {
+  const root = useRef<HTMLElement>(null!);
+
+  useGSAP(
+    () => {
+      ScrollTrigger.create({
+        trigger: root.current,
+        start: "top top",
+        end: "bottom bottom",
+        scrub: true,
+        onUpdate: (self) => {
+          carbonationProgress.current = self.progress;
+        },
+      });
+
+      gsap.from("[data-stat]", {
+        y: 24,
+        autoAlpha: 0,
+        duration: 0.6,
+        stagger: 0.12,
+        ease: "power2.out",
+        scrollTrigger: { trigger: root.current, start: "top 60%" },
+      });
+    },
+    { scope: root },
+  );
+
   return (
-    <section id="why" className="relative h-[200vh]">
+    <section id="why" ref={root} className="relative h-[200vh]">
       <div className="sticky top-0 flex h-[100svh] items-center overflow-hidden">
-        <div className="mx-auto grid w-full max-w-7xl gap-16 px-6 md:grid-cols-2 md:px-10">
+        <View className="pointer-events-none absolute inset-0">
+          <Suspense fallback={null}>
+            <CarbonationScene />
+          </Suspense>
+        </View>
+
+        <div className="relative mx-auto grid w-full max-w-7xl gap-16 px-6 md:grid-cols-2 md:px-10">
           <div>
             <p className="text-[0.7rem] uppercase tracking-[0.3em] text-cream/60">
               Why it works
@@ -28,7 +72,7 @@ export default function Carbonation() {
 
             <dl className="mt-12 grid grid-cols-3 gap-6 border-t border-cream/20 pt-8">
               {STATS.map((stat) => (
-                <div key={stat.label}>
+                <div key={stat.label} data-stat>
                   <dt className="wordmark text-4xl text-cream md:text-5xl">
                     {stat.value}
                   </dt>

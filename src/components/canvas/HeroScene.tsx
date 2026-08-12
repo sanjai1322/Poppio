@@ -5,6 +5,7 @@ import * as THREE from "three";
 import { useFrame, useThree } from "@react-three/fiber";
 import { Float, PerspectiveCamera } from "@react-three/drei";
 import Can, { CAN_CENTER_Y, CAN_HEIGHT } from "./Can";
+import Bubbles from "./Bubbles";
 import Lighting from "./Lighting";
 
 type IdleCanProps = {
@@ -46,6 +47,18 @@ export default function HeroScene() {
     <>
       <PerspectiveCamera makeDefault fov={30} position={[0, 0, 5]} />
       <Lighting />
+
+      {/* Soft spheres drifting behind the cans — one draw call. */}
+      <group position={[0, 0, -2.2]}>
+        <Bubbles
+          count={26}
+          area={[viewport.width * 1.4, viewport.height * 1.5, 2]}
+          radius={0.28}
+          rise={0.25}
+          opacity={0.16}
+          seed={3}
+        />
+      </group>
 
       <IdleCan
         flavor={0}
