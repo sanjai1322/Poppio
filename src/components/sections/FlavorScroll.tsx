@@ -8,7 +8,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import type { SplitText } from "gsap/SplitText";
 import FlavorScrollScene from "@/components/canvas/FlavorScrollScene";
 import { CREAM, FLAVORS, INK } from "@/lib/flavors";
-import { canSpin, flavorProgress } from "@/lib/scrollState";
+import { cameraDolly, canSpin, flavorProgress } from "@/lib/scrollState";
 import { activeFlavorStore, flavorSectionStore } from "@/lib/flavorStore";
 import { SLAM_FROM, SLAM_IN, SLAM_OUT, splitForSlam } from "@/lib/slam";
 import { usePerfTier } from "@/lib/usePerfTier";
@@ -109,6 +109,14 @@ export default function FlavorScroll() {
         end: "bottom bottom",
         scrub: true,
         onToggle: (self) => flavorSectionStore.set(self.isActive),
+        onEnter: () => {
+          if (reducedMotion) return;
+          gsap.fromTo(
+            cameraDolly,
+            { current: 0.55 },
+            { current: 0, duration: 1.2, ease: "power2.out", overwrite: true },
+          );
+        },
         onUpdate: (self) => {
             flavorProgress.current = self.progress;
             // Mirrors the trigger every update rather than trusting onToggle:
@@ -161,6 +169,7 @@ export default function FlavorScroll() {
           gsap.set(article, { autoAlpha: i === active ? 1 : 0 }),
         );
         gsap.set(incoming.lines, { yPercent: 0, autoAlpha: 1 });
+        cameraDolly.current = 0;
         if (bg) gsap.set(bg, { backgroundColor: flavor.color });
         if (nav) gsap.set(nav, { color: navColor });
         return;
@@ -184,6 +193,25 @@ export default function FlavorScroll() {
         },
         0,
       );
+
+      // Camera pulls back as the can breaks into its spin, then eases in and
+      // settles on the new label. The push-in outlasts the spin on purpose —
+      // the settle is what makes a beat feel like it lands rather than stops.
+      //
+      // Tweened from wherever the dolly currently is rather than fromTo'd: a
+      // fixed start value snaps the camera on every beat, which jolts badly
+      // when a fast scroll fires beats back to back.
+      timeline
+        .to(
+          cameraDolly,
+          { current: 0.55, duration: SPIN * 0.4, ease: "power2.out" },
+          0,
+        )
+        .to(
+          cameraDolly,
+          { current: 0, duration: SPIN * 2.1, ease: "power2.out" },
+          SPIN * 0.4,
+        );
 
       timeline.call(() => setWorn(active), undefined, half);
 

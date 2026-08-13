@@ -23,3 +23,15 @@ export const canSpin = { current: 0 };
  * canvas and by the DOM cloud field, which must move as one.
  */
 export const skydiveProgress = { current: 0 };
+
+/**
+ * Camera distance offset for the flavour scroll, in world units, added to the
+ * camera's resting Z. Negative is closer. Each beat change pulls back and eases
+ * in, so every flavour arrives as its own shot rather than a texture swap on a
+ * static frame.
+ *
+ * Mutated per frame, so it lives here rather than in React state — and moving
+ * the camera directly does not touch R3F's `viewport`, so the can's scale stays
+ * put and the push-in actually reads as a change in distance.
+ */
+export const cameraDolly = { current: 0 };

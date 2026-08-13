@@ -6,11 +6,15 @@ import { useFrame, useThree } from "@react-three/fiber";
 import { PerspectiveCamera } from "@react-three/drei";
 import Can, { CAN_CENTER_Y, CAN_FRONT_Y, CAN_HEIGHT } from "./Can";
 import Lighting from "./Lighting";
-import { canSpin } from "@/lib/scrollState";
+import { cameraDolly, canSpin } from "@/lib/scrollState";
 import { usePerfTier } from "@/lib/usePerfTier";
+
+/** Resting camera distance; the dolly offsets from here. */
+const CAMERA_Z = 5;
 
 export default function FlavorScrollScene({ flavor }: { flavor: number }) {
   const viewport = useThree((state) => state.viewport);
+  const camera = useRef<THREE.PerspectiveCamera>(null!);
   const spinner = useRef<THREE.Group>(null!);
   const bob = useRef<THREE.Group>(null!);
   const { isMobile, reducedMotion } = usePerfTier();
@@ -20,6 +24,12 @@ export default function FlavorScrollScene({ flavor }: { flavor: number }) {
     // Rests front-on and is spun by the beat-change timeline, so the label
     // swap can be buried at the fastest part of the turn.
     spinner.current.rotation.y = CAN_FRONT_Y + canSpin.current;
+
+    // Push-in. Driven from the same timeline as the spin, so the camera
+    // settles exactly as the new label lands.
+    if (camera.current) {
+      camera.current.position.z = CAMERA_Z + cameraDolly.current;
+    }
 
     const t = state.clock.elapsedTime;
     bob.current.position.y = Math.sin(t * 0.8) * 0.03 * idle;
@@ -34,7 +44,12 @@ export default function FlavorScrollScene({ flavor }: { flavor: number }) {
 
   return (
     <>
-      <PerspectiveCamera makeDefault fov={30} position={[0, 0, 5]} />
+      <PerspectiveCamera
+        ref={camera}
+        makeDefault
+        fov={30}
+        position={[0, 0, CAMERA_Z]}
+      />
       <Lighting />
 
       <group position={[x, y, 0]} scale={scale}>
