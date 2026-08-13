@@ -29,11 +29,11 @@ export default function ClusterView() {
   const idle = reducedMotion ? 0 : 1;
 
   useGSAP(() => {
-    // Stop drawing once the flavour section takes over, and pick it back up
+    // Stop drawing once the skydive section takes over, and pick it back up
     // on the way up. Bound to enter/leaveBack rather than isActive, which
-    // would flip back on again for every section after the flavour scroll.
+    // would flip back on again for every section after the skydive.
     ScrollTrigger.create({
-      trigger: "#flavours",
+      trigger: "#skydive",
       start: "top bottom",
       onEnter: () => setVisible(false),
       onLeaveBack: () => setVisible(true),

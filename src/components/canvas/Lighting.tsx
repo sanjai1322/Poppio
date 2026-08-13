@@ -13,27 +13,39 @@ export default function Lighting() {
 
   return (
     <>
-      <ambientLight intensity={0.55} />
-      <directionalLight position={[3, 5, 4]} intensity={1.6} />
-      <directionalLight position={[-4, 2, -3]} intensity={0.5} />
+      <ambientLight intensity={0.65} />
+      <directionalLight position={[3, 5, 4]} intensity={2.2} castShadow />
+      <directionalLight position={[-4, 2, -3]} intensity={0.8} />
+      <directionalLight position={[0, -4, 2]} intensity={0.4} />
 
       <Environment resolution={isMobile ? 64 : 128}>
+        {/* Soft front fill */}
         <Lightformer
           form="rect"
-          intensity={5}
+          intensity={6}
           position={[0, 2.5, 4]}
           scale={[8, 6, 1]}
         />
+        {/* Crisp side rim light for metallic highlights */}
         <Lightformer
           form="rect"
-          intensity={2.5}
+          intensity={4.5}
           position={[-5, 1, 1]}
           rotation-y={Math.PI / 2}
           scale={[6, 5, 1]}
         />
+        {/* Top glossy ring highlight */}
         <Lightformer
           form="ring"
-          intensity={3}
+          intensity={5}
+          position={[0, 4, 0]}
+          rotation-x={Math.PI / 2}
+          scale={5}
+        />
+        {/* Back highlight */}
+        <Lightformer
+          form="rect"
+          intensity={3.5}
           position={[4, 3, -2]}
           scale={4}
         />

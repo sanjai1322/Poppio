@@ -23,3 +23,18 @@
     @apply font-display uppercase tracking-tightest;
   }
 }
+
+@layer components {
+  /* One shared cloud texture: overlapping soft blobs in currentColor, so
+     every sprite is the same paint varied only by transform, tint and
+     opacity. Blur is per depth layer — crisp shapes read as stickers,
+     blurred ones read as atmosphere. */
+  .cloud {
+    background:
+      radial-gradient(closest-side at 28% 62%, currentColor 0%, transparent 100%),
+      radial-gradient(closest-side at 52% 38%, currentColor 0%, transparent 100%),
+      radial-gradient(closest-side at 74% 64%, currentColor 0%, transparent 100%),
+      radial-gradient(closest-side at 44% 72%, currentColor 0%, transparent 100%);
+    will-change: transform;
+  }
+}

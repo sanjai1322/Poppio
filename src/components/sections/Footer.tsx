@@ -29,6 +29,7 @@ export default function Footer() {
       duration: 0.34,
       ease: "power2.out",
       stagger: { each: 0.05, yoyo: true, repeat: 1 },
+      clearProps: "transform",
     });
   });
 

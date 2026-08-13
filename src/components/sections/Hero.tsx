@@ -43,7 +43,7 @@ export default function Hero() {
 
       <p
         data-hero-in
-        className="relative text-[0.7rem] font-medium uppercase tracking-[0.35em] text-cream/70"
+        className="relative text-[0.6rem] font-medium uppercase tracking-[0.4em] text-cream/50"
       >
         Prebiotic soda
       </p>

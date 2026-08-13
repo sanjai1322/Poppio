@@ -37,14 +37,14 @@ const HERO: CanPose[] = [
 
 /**
  * Cluster: grouped right of centre, overlapping at four different depths and
- * four different angles. Intentionally lopsided — an even arrangement reads as
- * a product grid, not as cans that landed where they fell.
+ * four different angles. Pulled in from the original layout so all four cans
+ * sit fully within the viewport with breathing room.
  */
 const CLUSTER: CanPose[] = [
-  { pos: [0.1, -0.02, 0.35], rot: [0, -0.12, 0.05], scale: 0.88 },
-  { pos: [0.34, 0.12, -0.9], rot: [0.05, 0.28, -0.14], scale: 0.7 },
-  { pos: [0.04, 0.16, -0.55], rot: [-0.04, -0.24, 0.13], scale: 0.74 },
-  { pos: [0.27, -0.22, 0.1], rot: [0.03, 0.16, -0.18], scale: 0.8 },
+  { pos: [0.12, -0.01, 0.3],  rot: [0, -0.12, 0.05],  scale: 0.6 },
+  { pos: [0.28,  0.08, -0.7], rot: [0.03, 0.28, -0.1], scale: 0.5 },
+  { pos: [0.06,  0.1, -0.4],  rot: [-0.03, -0.24, 0.1],scale: 0.52 },
+  { pos: [0.24, -0.14, 0.05], rot: [0.02, 0.16, -0.14], scale: 0.56 },
 ];
 
 /**
@@ -58,12 +58,11 @@ const TUMBLE_TURNS = [2, -3, 3, -2];
  * X tumble peaks mid-flight and returns to zero, rather than accumulating.
  * Half a turn of accumulated X would land the can upside down.
  *
- * Kept well under a quarter turn on purpose: at 90 degrees a can points its
- * flat metal lid straight at the lens and reads as a blank disc, and with four
- * cans peaking together the whole mid-flight frame turns to lids. The Y turns
- * carry the sense of being thrown; X only needs to break the axis.
+ * Capped at roughly 15 degrees: at higher angles the flat metal lid dominates
+ * the frame and the label becomes unreadable. The Y turns carry the sense of
+ * being thrown; X only needs to break the axis.
  */
-const TUMBLE_X_PEAK = [0.22, -0.18, 0.26, -0.2].map((t) => t * Math.PI);
+const TUMBLE_X_PEAK = [0.08, -0.07, 0.09, -0.08].map((t) => t * Math.PI);
 
 const MAX_TILT = THREE.MathUtils.degToRad(8);
 const SWAY_PHASE = [-20, 22, 0, 0];

@@ -4,7 +4,7 @@ import { useRef } from "react";
 import * as THREE from "three";
 import { useFrame, useThree } from "@react-three/fiber";
 import { PerspectiveCamera } from "@react-three/drei";
-import Can, { CAN_CENTER_Y, CAN_HEIGHT } from "./Can";
+import Can, { CAN_CENTER_Y, CAN_FRONT_Y, CAN_HEIGHT } from "./Can";
 import Bubbles from "./Bubbles";
 import Lighting from "./Lighting";
 import { carbonationProgress } from "@/lib/scrollState";
@@ -18,28 +18,33 @@ export default function CarbonationScene() {
   const spinner = useRef<THREE.Group>(null!);
   const bubbleFade = useRef(1);
 
-  useFrame((state, delta) => {
+  useFrame((state) => {
     const progress = carbonationProgress.current;
 
     // The colour plate turns to ink over the back half of this section, and
     // pale bubbles at low alpha go muddy against it — retire them instead.
     bubbleFade.current = 1 - THREE.MathUtils.smoothstep(progress, 0.6, 0.95);
 
-    // Rise from below the fold as the section scrolls. On mobile the two-column
-    // layout collapses, so the can stays in the empty lower third rather than
-    // climbing through the copy.
+    // Rise into frame as the section scrolls. Starts just below the fold and
+    // settles near vertical centre, so the full can is visible right of the
+    // text for the majority of the section.
     riser.current.position.y = THREE.MathUtils.lerp(
-      -viewport.height * 0.6,
-      viewport.height * (isMobile ? -0.32 : 0.3),
+      -viewport.height * 0.3,
+      viewport.height * (isMobile ? -0.1 : 0.1),
       progress,
     );
-    spinner.current.rotation.y += delta * 0.25 * idle;
+    // Front-facing with a gentle sway, so the label is always readable.
+    // Never spins continuously — that would show the nutrition panel as often
+    // as the wordmark.
+    spinner.current.rotation.y =
+      CAN_FRONT_Y +
+      Math.sin(state.clock.elapsedTime * 0.4) * THREE.MathUtils.degToRad(8) * idle;
     riser.current.rotation.z =
       Math.sin(state.clock.elapsedTime * 0.4) * 0.04 * idle;
   });
 
-  const scale = (viewport.height * (isMobile ? 0.24 : 0.42)) / CAN_HEIGHT;
-  const x = isMobile ? 0 : viewport.width * 0.24;
+  const scale = (viewport.height * (isMobile ? 0.28 : 0.52)) / CAN_HEIGHT;
+  const x = isMobile ? 0 : viewport.width * 0.2;
 
   return (
     <>

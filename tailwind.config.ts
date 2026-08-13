@@ -17,7 +17,7 @@ const config: Config = {
         sans: ["var(--font-sans)"],
       },
       letterSpacing: {
-        tightest: "-0.05em",
+        tightest: "-0.02em",
       },
     },
   },

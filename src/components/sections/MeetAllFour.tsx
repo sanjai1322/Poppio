@@ -4,7 +4,7 @@ import { useRef } from "react";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { FLAVORS } from "@/lib/flavors";
+import { CREAM, FLAVORS } from "@/lib/flavors";
 import { clusterProgress } from "@/lib/scrollState";
 import { SLAM_FROM, SLAM_IN, splitForSlam } from "@/lib/slam";
 
@@ -36,12 +36,12 @@ export default function MeetAllFour() {
         },
       });
 
-      // Background cross-fade: Mango → Dragon cyan across the same range.
+      // Background cross-fade: Mango → Cream → Dragon cyan across the same range.
       // Look up #bg directly, not through scoped selectors.
       //
-      // Routed through guava on the way: orange and cyan are near-opposites,
-      // so a direct RGB blend passes through dead olive-grey at the halfway
-      // point — which is exactly where the tumble is most visible.
+      // Routed through cream on the way: orange and cyan are near-opposites,
+      // so a direct RGB blend passes through dead purple-grey at the halfway
+      // point — cream is a neutral palette colour that avoids this entirely.
       const bg = document.getElementById("bg");
       if (bg) {
         gsap
@@ -56,7 +56,7 @@ export default function MeetAllFour() {
           .fromTo(
             bg,
             { backgroundColor: FLAVORS[0].color },
-            { backgroundColor: FLAVORS[1].color, ease: "none", duration: 1 },
+            { backgroundColor: CREAM, ease: "none", duration: 1 },
           )
           .to(bg, {
             backgroundColor: FLAVORS[3].color,
@@ -101,7 +101,7 @@ export default function MeetAllFour() {
           <div className="md:w-[45%]">
             <p
               data-cluster-in
-              className="text-[0.7rem] uppercase tracking-[0.3em] text-cream/60"
+              className="text-[0.6rem] uppercase tracking-[0.4em] text-cream/40"
             >
               The lineup
             </p>

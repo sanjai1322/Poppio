@@ -17,3 +17,9 @@ export const clusterProgress = { current: 0 };
  * reads it. Not scroll-linked any more — the spin is an event.
  */
 export const canSpin = { current: 0 };
+
+/**
+ * Scroll progress through the pinned skydive range. Read by the can in the
+ * canvas and by the DOM cloud field, which must move as one.
+ */
+export const skydiveProgress = { current: 0 };

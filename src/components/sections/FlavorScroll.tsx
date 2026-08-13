@@ -17,6 +17,34 @@ gsap.registerPlugin(useGSAP, ScrollTrigger);
 
 const BEATS = FLAVORS.length;
 
+/**
+ * Returns true when two hex colours are far enough apart in hue that an RGB
+ * interpolation would pass through the desaturated centre of the wheel.
+ * Threshold: 120° — roughly one-third of the wheel.
+ */
+function hexToHue(hex: string): number {
+  const n = parseInt(hex.replace("#", ""), 16);
+  const r = ((n >> 16) & 0xff) / 255;
+  const g = ((n >> 8) & 0xff) / 255;
+  const b = (n & 0xff) / 255;
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  const d = max - min;
+  if (d === 0) return 0;
+  let h = 0;
+  if (max === r) h = ((g - b) / d + 6) % 6;
+  else if (max === g) h = (b - r) / d + 2;
+  else h = (r - g) / d + 4;
+  return h * 60;
+}
+
+function hueDistanceLarge(a: string, b: string): boolean {
+  const ha = hexToHue(a);
+  const hb = hexToHue(b);
+  const d = Math.abs(ha - hb);
+  return Math.min(d, 360 - d) > 120;
+}
+
 export default function FlavorScroll() {
   const root = useRef<HTMLElement>(null!);
   const splits = useRef<SplitText[]>([]);
@@ -50,25 +78,29 @@ export default function FlavorScroll() {
       // section opens on mango and only repaints on a beat *change* — so beat
       // one would sit on the wrong colour. Fade it back on the approach.
       //
-      // fromTo with immediateRender off: a bare `to` records its start value
-      // whenever it first renders and can stamp that colour at load.
+      // Routed through cream: dragon cyan and mango orange are near-opposites,
+      // so a direct RGB blend would pass through purple-grey.
       const approachBg = document.getElementById("bg");
       if (approachBg) {
-        gsap.fromTo(
-          approachBg,
-          { backgroundColor: FLAVORS[FLAVORS.length - 1].color },
-          {
-            backgroundColor: FLAVORS[0].color,
-            ease: "none",
-            immediateRender: false,
+        gsap
+          .timeline({
             scrollTrigger: {
               trigger: root.current,
               start: "top bottom",
               end: "top top",
               scrub: true,
             },
-          },
-        );
+          })
+          .fromTo(
+            approachBg,
+            { backgroundColor: FLAVORS[FLAVORS.length - 1].color },
+            { backgroundColor: CREAM, ease: "none", duration: 1, immediateRender: false },
+          )
+          .to(approachBg, {
+            backgroundColor: FLAVORS[0].color,
+            ease: "none",
+            duration: 1,
+          });
       }
 
       ScrollTrigger.create({
@@ -134,7 +166,7 @@ export default function FlavorScroll() {
         return;
       }
 
-      const SPIN = 0.9;
+      const SPIN = 0.5;
       const half = SPIN / 2;
       const direction = active > from ? 1 : -1;
 
@@ -156,28 +188,47 @@ export default function FlavorScroll() {
       timeline.call(() => setWorn(active), undefined, half);
 
       if (bg) {
-        timeline.to(
-          bg,
-          {
-            backgroundColor: flavor.color,
-            duration: 0.5,
-            ease: "power2.inOut",
-          },
-          half - 0.25,
-        );
+        // For large hue jumps (e.g. orange↔cyan via card grid), route through
+        // cream to avoid the RGB dead-zone purple. For adjacent hues the direct
+        // tween is fast enough that the midpoint is invisible.
+        const fromColor = FLAVORS[from].color;
+        const needsWaypoint = hueDistanceLarge(fromColor, flavor.color);
+
+        if (needsWaypoint) {
+          timeline.to(
+            bg,
+            { backgroundColor: CREAM, duration: 0.25, ease: "power2.in" },
+            half - 0.17,
+          );
+          timeline.to(
+            bg,
+            { backgroundColor: flavor.color, duration: 0.25, ease: "power2.out" },
+            half,
+          );
+        } else {
+          timeline.to(
+            bg,
+            {
+              backgroundColor: flavor.color,
+              duration: 0.34,
+              ease: "power2.inOut",
+            },
+            half - 0.17,
+          );
+        }
       }
 
       if (nav) {
         timeline.to(
           nav,
-          { color: navColor, duration: 0.5, ease: "power2.inOut" },
-          half - 0.25,
+          { color: navColor, duration: 0.34, ease: "power2.inOut" },
+          half - 0.17,
         );
       }
 
       if (outgoing) {
         timeline.to(outgoing.lines, SLAM_OUT, 0);
-        timeline.to(articles[from], { autoAlpha: 0, duration: 0.3 }, 0.25);
+        timeline.to(articles[from], { autoAlpha: 0, duration: 0.2 }, 0.14);
       }
 
       timeline.set(articles[active], { autoAlpha: 1 }, half - 0.1);
@@ -185,7 +236,7 @@ export default function FlavorScroll() {
       timeline.fromTo(
         articles[active].querySelectorAll("[data-sub]"),
         { y: 20, autoAlpha: 0 },
-        { y: 0, autoAlpha: 1, duration: 0.7, stagger: 0.06, ease: "power3.out" },
+        { y: 0, autoAlpha: 1, duration: 0.45, stagger: 0.04, ease: "power3.out" },
         half,
       );
     },
@@ -195,7 +246,7 @@ export default function FlavorScroll() {
   return (
     // One viewport of scroll per beat, plus one for the sticky child itself —
     // a 400vh section would only leave 300vh of *stuck* scroll for 4 beats.
-    <section id="flavours" ref={root} className="relative h-[500vh]">
+    <section id="flavours" ref={root} className="relative h-[340vh]">
       <div className="sticky top-0 h-[100svh] overflow-hidden">
         <View className="pointer-events-none absolute inset-0">
           <Suspense fallback={null}>
@@ -204,39 +255,42 @@ export default function FlavorScroll() {
         </View>
 
         <div className="relative mx-auto h-full max-w-7xl px-6 md:px-10">
-          <p className="absolute right-6 top-28 text-[0.7rem] uppercase tracking-[0.3em] text-cream/60 md:right-10">
+          <p className="absolute right-6 top-28 text-[0.6rem] uppercase tracking-[0.4em] text-cream/40 md:right-10">
             The lineup
           </p>
 
           {/* Copy holds the left third, vertically centred; the can owns the
               right of the frame and the numeral bleeds off behind it. */}
-          {FLAVORS.map((flavor, i) => (
-            <article
-              key={flavor.id}
-              data-flavor-name
-              className="absolute bottom-16 left-6 right-6 md:bottom-auto md:left-10 md:right-auto md:top-1/2 md:w-[42%] md:-translate-y-1/2"
-            >
-              <p
-                data-sub
-                className="text-[0.7rem] uppercase tracking-[0.3em] text-cream/60"
+          {FLAVORS.map((flavor, i) => {
+            return (
+              <article
+                key={flavor.id}
+                data-flavor-name
+                className="absolute bottom-16 left-6 right-6 md:bottom-auto md:left-10 md:right-auto md:top-1/2 md:w-[42%] md:-translate-y-1/2"
               >
-                {String(i + 1).padStart(2, "0")} /{" "}
-                {String(BEATS).padStart(2, "0")}
-              </p>
-              <h2 className="wordmark mt-3 text-[clamp(2.25rem,6vw,5rem)] leading-[0.85] text-cream">
-                {flavor.name}
-              </h2>
-              <p
-                data-sub
-                className="mt-4 text-sm uppercase tracking-[0.2em] text-cream/70"
-              >
-                {flavor.notes}
-              </p>
-              <p data-sub className="mt-2 max-w-sm text-lg text-cream/90">
-                {flavor.tagline}
-              </p>
-            </article>
-          ))}
+
+                <p
+                  data-sub
+                  className="text-[0.6rem] uppercase tracking-[0.4em] text-cream/90 font-medium"
+                >
+                  {String(i + 1).padStart(2, "0")} /{" "}
+                  {String(BEATS).padStart(2, "0")}
+                </p>
+                <h2 className="wordmark mt-3 text-[clamp(2.25rem,6vw,5rem)] leading-[0.85] text-cream">
+                  {flavor.name}
+                </h2>
+                <p
+                  data-sub
+                  className="mt-4 text-sm uppercase tracking-[0.2em] text-cream/70"
+                >
+                  {flavor.notes}
+                </p>
+                <p data-sub className="mt-2 max-w-sm text-lg text-cream/90">
+                  {flavor.tagline}
+                </p>
+              </article>
+            );
+          })}
         </div>
       </div>
     </section>

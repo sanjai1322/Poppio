@@ -83,7 +83,7 @@ export default function Carbonation() {
 
         <div className="relative mx-auto grid w-full max-w-7xl gap-16 px-6 md:grid-cols-2 md:px-10">
           <div>
-            <p className="text-[0.7rem] uppercase tracking-[0.3em] text-cream/60">
+            <p className="text-[0.6rem] uppercase tracking-[0.4em] text-cream/40">
               Why it works
             </p>
             <h2 className="wordmark mt-5 text-[clamp(2.25rem,6vw,4.5rem)] leading-[0.9] text-cream">
