@@ -9,6 +9,7 @@ import { FLAVORS } from "@/lib/flavors";
 import { scrollToBeat } from "@/lib/flavorBeats";
 import { SLAM_FROM, SLAM_IN, splitForSlam } from "@/lib/slam";
 import PanelStage from "@/components/canvas/PanelStage";
+import { usePerfTier } from "@/lib/usePerfTier";
 
 gsap.registerPlugin(useGSAP, ScrollTrigger);
 
@@ -27,6 +28,7 @@ gsap.registerPlugin(useGSAP, ScrollTrigger);
 export default function FlavorGrid() {
   const root = useRef<HTMLElement>(null!);
   const [open, setOpen] = useState<number | null>(null);
+  const { isMobile } = usePerfTier();
 
   useGSAP(
     () => {
@@ -69,11 +71,13 @@ export default function FlavorGrid() {
         {/* Colour and cans are drawn by the shared canvas, tracked to this row.
             The buttons above are transparent — they carry type and hit areas
             only, because an opaque background here would cover the canvas. */}
-        <View className="pointer-events-none absolute inset-0">
-          <Suspense fallback={null}>
-            <PanelStage open={open} />
-          </Suspense>
-        </View>
+        {!isMobile && (
+          <View className="pointer-events-none absolute inset-0">
+            <Suspense fallback={null}>
+              <PanelStage open={open} />
+            </Suspense>
+          </View>
+        )}
 
         <div
           data-panels
@@ -93,14 +97,15 @@ export default function FlavorGrid() {
               onFocus={() => setOpen(i)}
               onClick={() => scrollToBeat(i)}
               aria-label={"Jump to " + flavor.name}
-              className="group relative flex-1 overflow-hidden text-left outline-none transition-[flex-grow,opacity] duration-[700ms] ease-[cubic-bezier(0.22,1,0.36,1)]"
+              className="group relative flex-1 overflow-hidden text-left outline-none transition-opacity duration-[700ms] ease-[cubic-bezier(0.22,1,0.36,1)]"
               style={{
-                // The open panel takes the room; the others give it up. The
-                // colour plane behind reads this element's measured width, so
-                // the two can never drift apart mid-transition.
-                flexGrow: isOpen ? 2.4 : isQuiet ? 0.75 : 1,
-                // Dims the type only — the plane behind carries the colour.
+                // flexGrow is driven imperatively by PanelStage so the DOM and
+                // the colour plane share one number. Setting it here too would
+                // have React overwrite it on every render.
                 opacity: isQuiet ? 0.75 : 1,
+                // Mobile stacks the panels and skips the 3D stage entirely, so
+                // the colour has to come from CSS there.
+                backgroundColor: isMobile ? flavor.color : undefined,
               }}
             >
               {/* Hairline separators, so four solid colours read as one system

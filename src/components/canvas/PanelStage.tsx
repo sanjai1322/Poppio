@@ -42,51 +42,60 @@ export default function PanelStage({ open }: { open: number | null }) {
   const planes = useRef<THREE.Mesh[]>([]);
   const cans = useRef<THREE.Group[]>([]);
 
+  /** Live grow values. This component owns them; the DOM follows. */
+  const grow = useRef<number[]>(FLAVORS.map(() => 1));
+
   useFrame((state, delta) => {
-    const row = document.querySelector("[data-panels]");
-    if (!row) return;
-    const rowRect = row.getBoundingClientRect();
-    if (rowRect.width === 0) return;
+    const buttons = document.querySelectorAll<HTMLElement>("[data-panel]");
+    if (buttons.length === 0) return;
 
-    const buttons = document.querySelectorAll("[data-panel]");
+    // Widths are computed here and *written* to the DOM — never read back.
+    // Reading getBoundingClientRect per frame forces a synchronous layout of a
+    // flex row that is mid-transition, which measured at 0.7fps on a phone
+    // viewport. Owning the number instead means zero reflows, and the DOM and
+    // the 3D cannot disagree because they are the same value.
+    let total = 0;
+    for (let i = 0; i < grow.current.length; i++) {
+      const target = open === i ? 2.4 : open === null ? 1 : 0.75;
+      grow.current[i] = THREE.MathUtils.damp(
+        grow.current[i],
+        target,
+        7,
+        delta,
+      );
+      total += grow.current[i];
+    }
 
-    buttons.forEach((button, i) => {
+    let cursor = 0;
+    for (let i = 0; i < grow.current.length; i++) {
       const plane = planes.current[i];
       const can = cans.current[i];
-      if (!plane || !can) return;
+      const button = buttons[i];
+      if (button) button.style.flexGrow = String(grow.current[i]);
+      if (!plane || !can) continue;
 
-      const rect = button.getBoundingClientRect();
-      const fracW = rect.width / rowRect.width;
-      const fracX = (rect.left + rect.width / 2 - rowRect.left) / rowRect.width;
+      const fracW = grow.current[i] / total;
+      const fracX = cursor + fracW / 2;
+      cursor += fracW;
 
       const worldW = fracW * viewport.width;
       const worldX = (fracX - 0.5) * viewport.width;
 
       plane.position.x = worldX * PLANE_COMP;
-      plane.scale.set(
-        worldW * PLANE_COMP,
-        viewport.height * PLANE_COMP,
-        1,
-      );
+      plane.scale.set(worldW * PLANE_COMP, viewport.height * PLANE_COMP, 1);
 
-      // Can is sized to whichever is tighter: the panel's width or the row's
+      // Can is sized to whichever is tighter, the panel's width or the row's
       // height, so a narrowed panel shrinks its can instead of clipping it.
       const fit = Math.min(worldW * 0.78, viewport.height * 0.46);
       const isOpen = open === i;
-      const target = (fit / CAN_HEIGHT) * (isOpen ? 1.06 : 0.92);
 
       can.position.x = worldX;
-      // Sits above centre; the copy occupies the lower part of the panel.
-      can.position.y = THREE.MathUtils.damp(
-        can.position.y,
-        viewport.height * (isOpen ? 0.12 : 0.06),
-        5,
-        delta,
-      );
-      can.scale.setScalar(THREE.MathUtils.damp(can.scale.x, target, 5, delta));
+      can.position.y = viewport.height * (isOpen ? 0.12 : 0.06);
+      can.scale.setScalar((fit / CAN_HEIGHT) * (isOpen ? 1.06 : 0.92));
 
-      // Faces front at rest; the chosen one turns a little towards the viewer.
-      const idle = reducedMotion ? 0 : Math.sin(state.clock.elapsedTime * 0.4 + i) * 0.08;
+      const idle = reducedMotion
+        ? 0
+        : Math.sin(state.clock.elapsedTime * 0.4 + i) * 0.08;
       can.rotation.y = THREE.MathUtils.damp(
         can.rotation.y,
         CAN_FRONT_Y + (isOpen ? 0.22 : 0) + idle,
@@ -94,7 +103,7 @@ export default function PanelStage({ open }: { open: number | null }) {
         delta,
       );
       can.rotation.z = isOpen ? -0.04 : 0.03;
-    });
+    }
   });
 
   return (

@@ -74,34 +74,10 @@ export default function FlavorScroll() {
         );
       });
 
-      // The cluster section hands the page over on dragon cyan, but this
-      // section opens on mango and only repaints on a beat *change* — so beat
-      // one would sit on the wrong colour. Fade it back on the approach.
-      //
-      // Routed through cream: dragon cyan and mango orange are near-opposites,
-      // so a direct RGB blend would pass through purple-grey.
-      const approachBg = document.getElementById("bg");
-      if (approachBg) {
-        gsap
-          .timeline({
-            scrollTrigger: {
-              trigger: root.current,
-              start: "top bottom",
-              end: "top top",
-              scrub: true,
-            },
-          })
-          .fromTo(
-            approachBg,
-            { backgroundColor: FLAVORS[FLAVORS.length - 1].color },
-            { backgroundColor: CREAM, ease: "none", duration: 1, immediateRender: false },
-          )
-          .to(approachBg, {
-            backgroundColor: FLAVORS[0].color,
-            ease: "none",
-            duration: 1,
-          });
-      }
+      // No approach ramp any more: the skydive hands this section over with
+      // the plate already on the first flavour's colour. The old ramp started
+      // from dragon cyan and passed through cream, which is what produced the
+      // blue flash and the mint wash before the oranges arrived.
 
       ScrollTrigger.create({
         trigger: root.current,

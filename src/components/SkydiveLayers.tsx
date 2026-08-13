@@ -4,7 +4,7 @@ import { useMemo, useRef, useState } from "react";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { INK } from "@/lib/flavors";
+import { FLAVORS } from "@/lib/flavors";
 import { skydiveProgress } from "@/lib/scrollState";
 import {
   BEAT,
@@ -44,10 +44,15 @@ function smoothstep(x: number, a: number, b: number) {
   return t * t * (3 - 2 * t);
 }
 
+/**
+ * Placement alternates side to side as well as top to bottom. Centred words sat
+ * directly behind a centred can and were almost entirely swallowed by it — the
+ * occlusion is meant to be a depth cue on an edge, not the whole word.
+ */
 const WORDS = [
-  { text: "Dive", at: 0.22, top: "20%" },
-  { text: "Into", at: 0.4, top: "22%" },
-  { text: "Better", at: 0.58, top: "60%" },
+  { text: "Dive", at: 0.22, top: "15%", justify: "flex-start", pad: "6vw" },
+  { text: "Into", at: 0.4, top: "30%", justify: "flex-end", pad: "6vw" },
+  { text: "Better", at: 0.58, top: "62%", justify: "flex-start", pad: "4vw" },
 ];
 
 /**
@@ -79,7 +84,7 @@ type Sprite = {
 export default function SkydiveLayers() {
   const sprites = useRef<HTMLDivElement[]>([]);
   const chars = useRef<HTMLSpanElement[][]>([]);
-  const exit = useRef<HTMLDivElement>(null!);
+  const plate = useRef<HTMLElement | null>(null);
   const sky = useRef<HTMLDivElement>(null!);
   const [active, setActive] = useState(false);
   const { isMobile } = usePerfTier();
@@ -109,6 +114,8 @@ export default function SkydiveLayers() {
 
   useGSAP(
     () => {
+      plate.current = document.getElementById("bg");
+
       ScrollTrigger.create({
         trigger: "#" + SKYDIVE_ID,
         start: SKYDIVE_START,
@@ -173,15 +180,16 @@ export default function SkydiveLayers() {
             });
           });
 
-          // Sky arrives across the handoff beat rather than snapping on.
+          // Hand straight from sky to the first flavour's colour. The old
+          // exit swept a dark dome up over the sky, which landed the viewer on
+          // a dead ink screen before the next section had anything to show.
+          const handover = smoothstep(p, BEAT.emptyEnd, 1);
           sky.current.style.opacity = String(
-            smoothstep(p, 0, BEAT.handoffEnd),
+            smoothstep(p, 0, BEAT.handoffEnd) * (1 - handover),
           );
-
-          // The next section sweeping up behind a curved edge.
-          const rise = smoothstep(p, BEAT.emptyEnd, 1);
-          exit.current.style.transform =
-            "translate3d(0," + (105 - rise * 105) + "%,0)";
+          if (plate.current) {
+            plate.current.style.backgroundColor = FLAVORS[0].color;
+          }
         },
       });
     },
@@ -238,8 +246,15 @@ export default function SkydiveLayers() {
         {WORDS.map((word, i) => (
           <span
             key={word.text}
-            className="wordmark absolute inset-x-0 flex justify-center text-[clamp(3.5rem,15vw,12rem)] leading-none"
-            style={{ top: word.top, color: WORD_ORANGE }}
+            className="wordmark absolute inset-x-0 flex text-[clamp(4rem,18vw,15rem)] leading-[0.82]"
+            style={{
+              top: word.top,
+              color: WORD_ORANGE,
+              justifyContent: word.justify,
+              paddingLeft: word.justify === "flex-start" ? word.pad : undefined,
+              paddingRight: word.justify === "flex-end" ? word.pad : undefined,
+              textShadow: "0 0.06em 0.5em rgba(20,40,90,0.22)",
+            }}
           >
             {word.text.split("").map((letter, c) => (
               // overflow-hidden per letter: the mask is what makes the rise
@@ -286,20 +301,6 @@ export default function SkydiveLayers() {
           ) : null,
         )}
       </div>
-
-      {/* The next section arriving as a curved sweep rather than a straight
-          edge — it should read as liquid, not as a slide. */}
-      <div
-        ref={exit}
-        id="skydive-exit"
-        className="pointer-events-none fixed bottom-0 left-[-20%] z-[16] h-[130vh] w-[140%]"
-        style={{
-          backgroundColor: INK,
-          borderRadius: "50% 50% 0 0 / 18vh 18vh 0 0",
-          transform: "translate3d(0,105%,0)",
-          opacity: shown,
-        }}
-      />
     </div>
   );
 }
