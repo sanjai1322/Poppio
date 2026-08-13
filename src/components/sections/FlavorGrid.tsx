@@ -1,25 +1,30 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { FLAVORS, type FlavorId } from "@/lib/flavors";
+import { FLAVORS } from "@/lib/flavors";
 import { scrollToBeat } from "@/lib/flavorBeats";
 import { SLAM_FROM, SLAM_IN, splitForSlam } from "@/lib/slam";
 
 gsap.registerPlugin(useGSAP, ScrollTrigger);
 
-/** Map each flavour to its PNG in public/fruits/. */
-const FRUIT_PNG: Record<FlavorId, string> = {
-  mango: "/fruits/mango.png",
-  guava: "/fruits/guava.png",
-  pineapple: "/fruits/pineapple.png",
-  dragon: "/fruits/dragonfruit.png",
-};
-
+/**
+ * The four flavours as full-height colour panels rather than cards.
+ *
+ * The previous version put a washed-out fruit cutout behind every card, which
+ * is the cheapest-looking move available: a stock illustration at low opacity
+ * doing the job that colour and type should do. The panels carry the brand
+ * colour at full strength instead, and the only graphic element is the
+ * typography.
+ *
+ * Hovering or focusing a panel expands it and reveals the rest of its copy —
+ * so the section is something you operate, not a static grid you read.
+ */
 export default function FlavorGrid() {
   const root = useRef<HTMLElement>(null!);
+  const [open, setOpen] = useState<number | null>(null);
 
   useGSAP(
     () => {
@@ -33,13 +38,13 @@ export default function FlavorGrid() {
           });
         }
 
-        gsap.from("[data-card]", {
-          y: 60,
+        gsap.from("[data-panel]", {
+          yPercent: 12,
           autoAlpha: 0,
-          duration: 0.8,
-          stagger: 0.1,
+          duration: 0.9,
+          stagger: 0.08,
           ease: "power3.out",
-          scrollTrigger: { trigger: "[data-cards]", start: "top 80%" },
+          scrollTrigger: { trigger: "[data-panels]", start: "top 80%" },
         });
       });
     },
@@ -47,67 +52,102 @@ export default function FlavorGrid() {
   );
 
   return (
-    <section ref={root} className="relative bg-ink">
-      <div className="mx-auto max-w-7xl px-6 py-24 md:px-10 md:py-32">
-        <p className="text-[0.6rem] uppercase tracking-[0.4em] text-cream/40">
+    <section id="pick" ref={root} className="relative bg-ink">
+      <div className="mx-auto max-w-7xl px-6 pt-24 md:px-10 md:pt-32">
+        <p className="text-[0.6rem] font-medium uppercase tracking-[0.4em] text-cream/40">
           All four
         </p>
         <h2 className="wordmark mt-5 max-w-2xl text-[clamp(2.25rem,6vw,4.5rem)] leading-[0.9] text-cream">
           Pick a side
         </h2>
+      </div>
 
-        <ul
-          data-cards
-          className="mt-16 grid gap-5 sm:grid-cols-2 lg:grid-cols-4"
-        >
-          {FLAVORS.map((flavor, i) => (
-            <li key={flavor.id}>
-              {/* Scrolls to the beat's rest point; the flavour section's own
-                  trigger then fires the same spin as a scroll would. */}
-              <button
-                type="button"
-                data-card
-                onClick={() => scrollToBeat(i)}
-                className="group relative flex aspect-[3/4] w-full flex-col justify-between overflow-hidden rounded-3xl p-7 text-left transition-transform duration-500 ease-out hover:-translate-y-2 hover:scale-[1.02]"
-                style={{ backgroundColor: flavor.color }}
-              >
-                {/* Colour bleeding past the card edge on hover. Sits behind
-                    the card's own background, so it only shows as a halo. */}
-                <span
-                  aria-hidden
-                  className="pointer-events-none absolute -inset-4 -z-10 rounded-[2.25rem] opacity-0 blur-2xl transition-opacity duration-500 group-hover:opacity-80"
-                  style={{ backgroundColor: flavor.color }}
-                />
-                <span className="text-[0.7rem] uppercase tracking-[0.3em] text-cream/70">
-                  No. {String(i + 1).padStart(2, "0")}
+      {/* Full-bleed: the colour should run to the edges of the screen. */}
+      <div
+        data-panels
+        className="mt-14 flex h-[70vh] min-h-[520px] w-full flex-col md:mt-20 md:h-[78vh] md:flex-row"
+        onMouseLeave={() => setOpen(null)}
+      >
+        {FLAVORS.map((flavor, i) => {
+          const isOpen = open === i;
+          const isQuiet = open !== null && !isOpen;
+
+          return (
+            <button
+              key={flavor.id}
+              data-panel
+              type="button"
+              onMouseEnter={() => setOpen(i)}
+              onFocus={() => setOpen(i)}
+              onClick={() => scrollToBeat(i)}
+              aria-label={"Jump to " + flavor.name}
+              className="group relative flex-1 overflow-hidden text-left outline-none transition-[flex-grow,filter] duration-[700ms] ease-[cubic-bezier(0.22,1,0.36,1)]"
+              style={{
+                backgroundColor: flavor.color,
+                // The open panel takes the room; the others give it up.
+                flexGrow: isOpen ? 2.4 : isQuiet ? 0.75 : 1,
+                // Unfocused panels sit back rather than disappearing.
+                filter: isQuiet ? "brightness(0.82)" : "none",
+              }}
+            >
+              {/* Hairline separators, so four solid colours read as one system
+                  rather than four blocks jammed together. */}
+              <span
+                aria-hidden
+                className="absolute inset-y-0 left-0 hidden w-px bg-ink/15 md:block"
+              />
+
+              <span className="relative flex h-full flex-col justify-between p-7 md:p-8">
+                <span className="flex items-baseline gap-3">
+                  <span className="text-[0.6rem] font-medium uppercase tracking-[0.4em] text-cream/70">
+                    {String(i + 1).padStart(2, "0")}
+                  </span>
+                  <span
+                    aria-hidden
+                    className="h-px flex-1 origin-left bg-cream/30 transition-transform duration-700 ease-out"
+                    style={{ transform: isOpen ? "scaleX(1)" : "scaleX(0.4)" }}
+                  />
                 </span>
 
-                {/* Fruit illustration filling the upper portion of the card.
-                    Cream-tinted at low opacity, bleeding off the top edge. */}
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={FRUIT_PNG[flavor.id]}
-                  alt=""
-                  aria-hidden
-                  draggable={false}
-                  className="pointer-events-none absolute left-1/2 top-0 -translate-x-1/2 -translate-y-[15%] opacity-[0.18] transition-transform duration-700 ease-out group-hover:scale-105"
-                  style={{ height: "65%", width: "auto", filter: "brightness(2.5) saturate(0.2)" }}
-                />
-                <span>
-                  <span className="wordmark block text-3xl leading-[0.9] text-cream">
+                <span className="block">
+                  {/* Type scales with the panel. At a fixed size the name
+                      overruns a narrowed panel and gets clipped mid-word. */}
+                  <span
+                    className="wordmark block leading-[0.88] text-cream transition-[font-size] duration-[700ms] ease-[cubic-bezier(0.22,1,0.36,1)]"
+                    style={{
+                      fontSize: isQuiet
+                        ? "clamp(1.1rem,1.7vw,1.6rem)"
+                        : "clamp(1.6rem,2.9vw,2.75rem)",
+                    }}
+                  >
                     {flavor.name}
                   </span>
-                  <span className="mt-3 block text-[0.7rem] uppercase tracking-[0.2em] text-cream/70">
-                    {flavor.notes}
-                  </span>
-                  <span className="mt-4 block text-base text-cream">
-                    {flavor.tagline}
+
+                  {/* Detail is held back until a panel is chosen — that reveal
+                      is what makes the row feel like an instrument. */}
+                  <span
+                    className="mt-4 block overflow-hidden transition-[max-height,opacity] duration-[700ms] ease-out"
+                    style={{
+                      maxHeight: isOpen ? "12rem" : "0rem",
+                      opacity: isOpen ? 1 : 0,
+                    }}
+                  >
+                    <span className="block text-[0.65rem] font-medium uppercase tracking-[0.3em] text-cream/80">
+                      {flavor.notes}
+                    </span>
+                    <span className="mt-3 block max-w-xs text-lg leading-snug text-cream">
+                      {flavor.tagline}
+                    </span>
+                    <span className="mt-5 inline-flex items-center gap-2 text-[0.65rem] font-bold uppercase tracking-[0.25em] text-cream">
+                      See it
+                      <span aria-hidden>&rarr;</span>
+                    </span>
                   </span>
                 </span>
-              </button>
-            </li>
-          ))}
-        </ul>
+              </span>
+            </button>
+          );
+        })}
       </div>
     </section>
   );

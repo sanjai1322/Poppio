@@ -50,6 +50,16 @@ const WORDS = [
   { text: "Better", at: 0.58, top: "60%" },
 ];
 
+/**
+ * Letter-by-letter timing, in scroll progress rather than seconds — the words
+ * are scrubbed, so a letter that has entered must un-enter if you scroll back.
+ */
+const CHAR_STAGGER = 0.011;
+const CHAR_IN = 0.055;
+const CHAR_OUT = 0.045;
+/** How long a word holds after its last letter lands. */
+const WORD_HOLD = 0.13;
+
 type Sprite = {
   layerIndex: number;
   x: number;
@@ -68,7 +78,7 @@ type Sprite = {
  */
 export default function SkydiveLayers() {
   const sprites = useRef<HTMLDivElement[]>([]);
-  const words = useRef<HTMLSpanElement[]>([]);
+  const chars = useRef<HTMLSpanElement[][]>([]);
   const exit = useRef<HTMLDivElement>(null!);
   const sky = useRef<HTMLDivElement>(null!);
   const [active, setActive] = useState(false);
@@ -137,17 +147,30 @@ export default function SkydiveLayers() {
               ")";
           });
 
-          // One word at a time, each fading out as the next arrives. A short
-          // overlap is intended; a hard cut is not.
+          // One word at a time, each cascading out as the next arrives. The
+          // letters carry the motion rather than the word block: each rises
+          // out of its own mask on a stagger, so the type reads as set rather
+          // than as a caption fading up.
           WORDS.forEach((word, i) => {
-            const el = words.current[i];
-            if (!el) return;
-            const shown =
-              smoothstep(p, word.at, word.at + 0.05) *
-              (1 - smoothstep(p, word.at + 0.14, word.at + 0.19));
-            el.style.opacity = String(shown);
-            el.style.transform =
-              "scale(" + (0.94 + 0.06 * smoothstep(p, word.at, word.at + 0.06)) + ")";
+            const letters = chars.current[i];
+            if (!letters) return;
+
+            letters.forEach((el, c) => {
+              if (!el) return;
+              const inAt = word.at + c * CHAR_STAGGER;
+              const outAt = word.at + WORD_HOLD + c * CHAR_STAGGER * 0.6;
+
+              const rising = smoothstep(p, inAt, inAt + CHAR_IN);
+              const leaving = smoothstep(p, outAt, outAt + CHAR_OUT);
+
+              // Clipped by the mask, so nothing shows outside the line box.
+              const y = (1 - rising) * 115 - leaving * 115;
+              const tilt = (1 - rising) * 9 - leaving * 7;
+
+              el.style.transform =
+                "translate3d(0," + y + "%,0) rotate(" + tilt + "deg)";
+              el.style.opacity = String(rising * (1 - leaving));
+            });
           });
 
           // Sky arrives across the handoff beat rather than snapping on.
@@ -215,13 +238,26 @@ export default function SkydiveLayers() {
         {WORDS.map((word, i) => (
           <span
             key={word.text}
-            ref={(el) => {
-              if (el) words.current[i] = el;
-            }}
-            className="wordmark absolute inset-x-0 text-center text-[clamp(3.5rem,15vw,12rem)] leading-none"
-            style={{ top: word.top, color: WORD_ORANGE, opacity: 0 }}
+            className="wordmark absolute inset-x-0 flex justify-center text-[clamp(3.5rem,15vw,12rem)] leading-none"
+            style={{ top: word.top, color: WORD_ORANGE }}
           >
-            {word.text}
+            {word.text.split("").map((letter, c) => (
+              // overflow-hidden per letter: the mask is what makes the rise
+              // read as type being set, with no ghosting above the line box.
+              <span key={c} className="inline-block overflow-hidden py-[0.08em]">
+                <span
+                  ref={(el) => {
+                    if (!el) return;
+                    if (!chars.current[i]) chars.current[i] = [];
+                    chars.current[i][c] = el;
+                  }}
+                  className="inline-block will-change-transform"
+                  style={{ opacity: 0 }}
+                >
+                  {letter}
+                </span>
+              </span>
+            ))}
           </span>
         ))}
       </div>
