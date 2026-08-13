@@ -1,12 +1,14 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { Suspense, useRef, useState } from "react";
+import { View } from "@react-three/drei";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { FLAVORS } from "@/lib/flavors";
 import { scrollToBeat } from "@/lib/flavorBeats";
 import { SLAM_FROM, SLAM_IN, splitForSlam } from "@/lib/slam";
+import PanelStage from "@/components/canvas/PanelStage";
 
 gsap.registerPlugin(useGSAP, ScrollTrigger);
 
@@ -52,7 +54,7 @@ export default function FlavorGrid() {
   );
 
   return (
-    <section id="pick" ref={root} className="relative bg-ink">
+    <section id="pick" ref={root} className="relative">
       <div className="mx-auto max-w-7xl px-6 pt-24 md:px-10 md:pt-32">
         <p className="text-[0.6rem] font-medium uppercase tracking-[0.4em] text-cream/40">
           All four
@@ -63,11 +65,21 @@ export default function FlavorGrid() {
       </div>
 
       {/* Full-bleed: the colour should run to the edges of the screen. */}
-      <div
-        data-panels
-        className="mt-14 flex h-[70vh] min-h-[520px] w-full flex-col md:mt-20 md:h-[78vh] md:flex-row"
-        onMouseLeave={() => setOpen(null)}
-      >
+      <div className="relative mt-14 md:mt-20">
+        {/* Colour and cans are drawn by the shared canvas, tracked to this row.
+            The buttons above are transparent — they carry type and hit areas
+            only, because an opaque background here would cover the canvas. */}
+        <View className="pointer-events-none absolute inset-0">
+          <Suspense fallback={null}>
+            <PanelStage open={open} />
+          </Suspense>
+        </View>
+
+        <div
+          data-panels
+          className="relative flex h-[70vh] min-h-[520px] w-full flex-col md:h-[78vh] md:flex-row"
+          onMouseLeave={() => setOpen(null)}
+        >
         {FLAVORS.map((flavor, i) => {
           const isOpen = open === i;
           const isQuiet = open !== null && !isOpen;
@@ -81,13 +93,14 @@ export default function FlavorGrid() {
               onFocus={() => setOpen(i)}
               onClick={() => scrollToBeat(i)}
               aria-label={"Jump to " + flavor.name}
-              className="group relative flex-1 overflow-hidden text-left outline-none transition-[flex-grow,filter] duration-[700ms] ease-[cubic-bezier(0.22,1,0.36,1)]"
+              className="group relative flex-1 overflow-hidden text-left outline-none transition-[flex-grow,opacity] duration-[700ms] ease-[cubic-bezier(0.22,1,0.36,1)]"
               style={{
-                backgroundColor: flavor.color,
-                // The open panel takes the room; the others give it up.
+                // The open panel takes the room; the others give it up. The
+                // colour plane behind reads this element's measured width, so
+                // the two can never drift apart mid-transition.
                 flexGrow: isOpen ? 2.4 : isQuiet ? 0.75 : 1,
-                // Unfocused panels sit back rather than disappearing.
-                filter: isQuiet ? "brightness(0.82)" : "none",
+                // Dims the type only — the plane behind carries the colour.
+                opacity: isQuiet ? 0.75 : 1,
               }}
             >
               {/* Hairline separators, so four solid colours read as one system
@@ -146,8 +159,9 @@ export default function FlavorGrid() {
                 </span>
               </span>
             </button>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
     </section>
   );
