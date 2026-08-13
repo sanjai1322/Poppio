@@ -1,11 +1,9 @@
 "use client";
 
-import { Suspense, useRef } from "react";
-import { View } from "@react-three/drei";
+import { useRef } from "react";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import SkydiveScene from "@/components/canvas/SkydiveScene";
 
 import { SKYDIVE_END, SKYDIVE_ID, SKYDIVE_START } from "@/lib/skydive";
 
@@ -34,6 +32,11 @@ export default function Skydive() {
       // across the handoff beat. It used to be tweened here as well, and the
       // two writers overwrote each other every frame.
 
+      // The pin inserts a spacer and changes the page height. Anything measured
+      // before that — including this section's own layer trigger — is now
+      // pointing at the wrong offsets, so re-measure once everything exists.
+      // This used to live in the skydive's 3D scene, which no longer exists.
+      ScrollTrigger.refresh();
     },
     { scope: root },
   );
@@ -44,11 +47,8 @@ export default function Skydive() {
         ref={stage}
         className="relative flex h-[100svh] items-center justify-center overflow-hidden"
       >
-        <View className="pointer-events-none absolute inset-0">
-          <Suspense fallback={null}>
-            <SkydiveScene />
-          </Suspense>
-        </View>
+        {/* The falling can is the cluster's Dragon Blue, carried over by
+            CanCluster — mounting a second one here would break continuity. */}
       </div>
     </section>
   );

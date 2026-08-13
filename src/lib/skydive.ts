@@ -11,9 +11,15 @@ export const SKYDIVE_START = "top top";
 /** Viewport heights of pinned scrolling. */
 export const SKYDIVE_END = "+=400%";
 
-/** Sky the section cross-fades to over the handoff beat. */
-export const SKY_TOP = "#A9E2EC";
-export const SKY_BOTTOM = "#E8FAFB";
+/**
+ * Sky the section cross-fades to over the handoff beat.
+ *
+ * A deep blue at altitude easing to haze at the horizon. The previous
+ * near-white pair gave the cream clouds and the cyan can nothing to sit
+ * against — everything washed into everything else.
+ */
+export const SKY_TOP = "#2E6BE6";
+export const SKY_BOTTOM = "#BFE6F5";
 
 /**
  * Beat boundaries, as scroll progress through the pinned range.

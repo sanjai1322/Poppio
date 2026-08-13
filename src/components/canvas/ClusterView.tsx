@@ -29,11 +29,12 @@ export default function ClusterView() {
   const idle = reducedMotion ? 0 : 1;
 
   useGSAP(() => {
-    // Stop drawing once the skydive section takes over, and pick it back up
-    // on the way up. Bound to enter/leaveBack rather than isActive, which
-    // would flip back on again for every section after the skydive.
+    // Stays alive through the skydive: this group owns the falling can now, so
+    // hiding it at the skydive boundary is exactly the cut we are removing.
+    // Bound to enter/leaveBack rather than isActive, which would flip back on
+    // again for every section after the flavour scroll.
     ScrollTrigger.create({
-      trigger: "#skydive",
+      trigger: "#flavours",
       start: "top bottom",
       onEnter: () => setVisible(false),
       onLeaveBack: () => setVisible(true),

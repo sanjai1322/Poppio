@@ -4,7 +4,8 @@ import { useMemo, useRef } from "react";
 import * as THREE from "three";
 import { useFrame, useThree } from "@react-three/fiber";
 import Can, { CAN_CENTER_Y, CAN_FRONT_Y, CAN_HEIGHT } from "./Can";
-import { clusterProgress } from "@/lib/scrollState";
+import { clusterProgress, skydiveProgress } from "@/lib/scrollState";
+import { BEAT } from "@/lib/skydive";
 import { usePerfTier } from "@/lib/usePerfTier";
 import { pointer, usePointerTracking } from "@/lib/pointer";
 
@@ -63,6 +64,19 @@ const TUMBLE_TURNS = [2, -3, 3, -2];
  * being thrown; X only needs to break the axis.
  */
 const TUMBLE_X_PEAK = [0.08, -0.07, 0.09, -0.08].map((t) => t * Math.PI);
+
+/**
+ * Slot 1 wears Dragon Blue, and it is the can that stays for the skydive.
+ * Cyan holds up best against the pale sky, and keeping it as one object across
+ * the two sections is what makes the handoff read as continuous rather than as
+ * a cut to a different can.
+ */
+const SKYDIVE_SLOT = 1;
+/** One full Y revolution per 0.20 of skydive progress. */
+const SKY_Y_REVS = 1 / 0.2;
+const SKY_X_RATE = SKY_Y_REVS / 3;
+/** A wobble, not a revolution — a full X turn shows the flat lid as a disc. */
+const SKY_X_WOBBLE = 0.32;
 
 const MAX_TILT = THREE.MathUtils.degToRad(8);
 const SWAY_PHASE = [-20, 22, 0, 0];
@@ -158,6 +172,53 @@ export default function CanCluster() {
           TUMBLE_TURNS[i] * Math.PI * 2 * eased,
         THREE.MathUtils.lerp(hero.rot[2], cluster.rot[2], eased),
       );
+
+      // --- Skydive handoff -------------------------------------------------
+      // The three others carry on up and out of frame; Dragon Blue stays and
+      // becomes the falling can. Same mesh, same material, no cut.
+      const sd = skydiveProgress.current;
+      if (sd > 0) {
+        const hand = THREE.MathUtils.smoothstep(sd, 0, BEAT.handoffEnd);
+
+        if (i === SKYDIVE_SLOT) {
+          const exitUp = THREE.MathUtils.smoothstep(
+            sd,
+            BEAT.freefallEnd,
+            BEAT.emptyEnd,
+          );
+          const drift = Math.sin(sd * Math.PI * 3);
+          const skyScale =
+            (viewport.height * (isMobile ? 0.4 : 0.52)) / CAN_HEIGHT;
+          const breathe =
+            0.96 + (Math.sin(sd * Math.PI * 5) * 0.5 + 0.5) * 0.08;
+
+          can.position.x = THREE.MathUtils.lerp(
+            can.position.x,
+            drift * viewport.width * 0.08,
+            hand,
+          );
+          can.position.y = THREE.MathUtils.lerp(
+            can.position.y,
+            Math.cos(sd * Math.PI * 2.2) * viewport.height * 0.05,
+            hand,
+          );
+          can.position.y += exitUp * viewport.height * 1.4;
+          can.position.z = THREE.MathUtils.lerp(can.position.z, 0, hand);
+          can.scale.setScalar(
+            THREE.MathUtils.lerp(can.scale.x, skyScale * breathe, hand),
+          );
+
+          // Tumble accumulates on top of wherever the cluster left it, so the
+          // spin starts from the resting pose instead of snapping to zero.
+          can.rotation.y += sd * SKY_Y_REVS * Math.PI * 2;
+          can.rotation.x += Math.sin(sd * SKY_X_RATE * Math.PI * 2) * SKY_X_WOBBLE;
+          can.rotation.z += Math.sin(sd * Math.PI * 4) * 0.12;
+        } else {
+          can.position.x += hand * viewport.width * 0.95;
+          can.position.y += hand * viewport.height * 1.15;
+          can.scale.multiplyScalar(1 - hand);
+        }
+      }
 
       // Cursor lean belongs to the hero pose only; it fades out the moment
       // the cans start travelling.
