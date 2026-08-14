@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -19,13 +19,13 @@ import { usePerfTier } from "@/lib/usePerfTier";
 gsap.registerPlugin(useGSAP, ScrollTrigger);
 
 /**
- * Atmospheric background cloud layers.
- * All clouds render BEHIND the 3D can so the can is always 100% visible and razor-sharp.
+ * Three depth layers. Travel is the factor multiplied by the section's scroll
+ * progress: higher numbers blow past the camera, lower ones drift behind.
  */
 const LAYERS = [
-  { key: "deep", count: 6, width: 28, blur: 8, opacity: 0.25, travel: 1.2 },
-  { key: "mid",  count: 8, width: 38, blur: 4, opacity: 0.40, travel: 2.0 },
-  { key: "drift", count: 6, width: 48, blur: 2, opacity: 0.48, travel: 2.8 },
+  { key: "deep", count: 7, width: 22, blur: 6, opacity: 0.35, travel: 1.4 },
+  { key: "mid", count: 8, width: 34, blur: 2, opacity: 0.7, travel: 2.3 },
+  { key: "near", count: 6, width: 42, blur: 0, opacity: 0.8, travel: 3.8 },
 ] as const;
 
 type Sprite = {
@@ -53,7 +53,7 @@ const CHAR_OUT = 0.035;
 const CHAR_STAGGER = 0.012;
 const WORD_HOLD = 0.11;
 
-const WORD_COLOR = "#FFF4E0";
+const WORD_ORANGE = "#FFF4E0";
 const DUSTY_PINK = "#F2B8B2";
 
 function hash(a: number, b: number): number {
@@ -73,13 +73,12 @@ export default function SkydiveLayers() {
   const chars = useRef<HTMLSpanElement[][]>([]);
   const plate = useRef<HTMLElement | null>(null);
   const sky = useRef<HTMLDivElement>(null!);
-  const backClouds = useRef<HTMLDivElement>(null!);
-  const wordsLayer = useRef<HTMLDivElement>(null!);
-
+  const [active, setActive] = useState(false);
   const { isMobile } = usePerfTier();
 
+  // Mobile keeps the parallax but drops the middle layer and thins the pool.
   const layers = useMemo(
-    () => (isMobile ? [LAYERS[0], LAYERS[1]] : LAYERS),
+    () => (isMobile ? [LAYERS[0], LAYERS[2]] : LAYERS),
     [isMobile],
   );
 
@@ -104,16 +103,7 @@ export default function SkydiveLayers() {
     () => {
       plate.current = document.getElementById("bg");
 
-      const setSkydiveOpacity = (skyOp: number, cloudOp: number, wordsOp: number) => {
-        if (sky.current) sky.current.style.opacity = String(skyOp);
-        if (backClouds.current) backClouds.current.style.opacity = String(cloudOp);
-        if (wordsLayer.current) wordsLayer.current.style.opacity = String(wordsOp);
-      };
-
-      // Ensure 0 opacity on initial mount
-      setSkydiveOpacity(0, 0, 0);
-
-      // 1. Handoff Trigger: from Meet All Four center to Skydive start
+      // 1. Handoff Trigger
       ScrollTrigger.create({
         trigger: "#meet-all-four",
         start: "center center",
@@ -121,15 +111,16 @@ export default function SkydiveLayers() {
         end: SKYDIVE_START,
         scrub: true,
         onLeaveBack: () => {
-          setSkydiveOpacity(0, 0, 0);
+          setActive(false);
+          if (sky.current) sky.current.style.opacity = "0";
           skydiveProgress.current = 0;
         },
         onUpdate: (self) => {
           if (skydiveProgress.current === 0) {
             const h = self.progress;
-            const skyOp = smoothstep(h, 0.35, 0.95);
-            const cloudOp = smoothstep(h, 0.45, 0.95);
-            setSkydiveOpacity(skyOp, cloudOp, 0);
+            if (sky.current) {
+              sky.current.style.opacity = String(smoothstep(h, 0.35, 0.95));
+            }
           }
         },
       });
@@ -139,11 +130,16 @@ export default function SkydiveLayers() {
         trigger: "#" + SKYDIVE_ID,
         start: SKYDIVE_START,
         end: SKYDIVE_END,
-        onLeaveBack: () => {
-          skydiveProgress.current = 0;
+        onToggle: (self) => {
+          setActive(self.isActive);
+          if (!self.isActive && sky.current && self.progress > 0.5) {
+            sky.current.style.opacity = "0";
+          }
         },
-        onLeave: () => {
-          setSkydiveOpacity(0, 0, 0);
+        onLeaveBack: () => {
+          setActive(false);
+          if (sky.current) sky.current.style.opacity = "0";
+          skydiveProgress.current = 0;
         },
         onUpdate: (self) => {
           const p = self.progress;
@@ -193,9 +189,9 @@ export default function SkydiveLayers() {
 
           // Hand straight from sky to the first flavour's colour at the end of skydive
           const handover = smoothstep(p, BEAT.emptyEnd, 1);
-          const exitFade = 1 - handover;
-          setSkydiveOpacity(exitFade, exitFade, 1);
-
+          if (sky.current) {
+            sky.current.style.opacity = String(1 - handover);
+          }
           if (plate.current) {
             plate.current.style.background = FLAVORS[3].gradient;
           }
@@ -205,13 +201,15 @@ export default function SkydiveLayers() {
     { dependencies: [field, layers] },
   );
 
+  const shown = active ? 1 : 0;
+
   return (
     <div aria-hidden>
-      {/* Sky background plate: rich cinematic gradient */}
+      {/* Sky. Pale and high-key on purpose — clouds and can carry the frame. */}
       <div
         ref={sky}
         id="skydive-sky"
-        className="pointer-events-none fixed inset-0 z-[6] transition-opacity duration-300"
+        className="pointer-events-none fixed inset-0 z-[6]"
         style={{
           opacity: 0,
           background:
@@ -219,35 +217,35 @@ export default function SkydiveLayers() {
         }}
       />
 
-      {/* Atmospheric clouds: BEHIND the 3D can at z-[7] for true depth */}
+      {/* Back clouds — under the canvas, so the can passes in front of them. */}
       <div
-        ref={backClouds}
-        className="pointer-events-none fixed inset-0 z-[7] overflow-hidden transition-opacity duration-300"
-        style={{ opacity: 0 }}
+        className="pointer-events-none fixed inset-0 z-[8] overflow-hidden transition-opacity duration-500"
+        style={{ opacity: shown }}
       >
-        {field.map((sprite, i) => (
-          <div
-            key={i}
-            ref={(el) => {
-              if (el) sprites.current[i] = el;
-            }}
-            className="cloud absolute aspect-[2/1]"
-            style={{
-              left: sprite.x + "%",
-              width: layers[sprite.layerIndex].width + "vw",
-              opacity: layers[sprite.layerIndex].opacity,
-              filter: "blur(" + layers[sprite.layerIndex].blur + "px)",
-              color: sprite.pink ? DUSTY_PINK : "#FFFFFF",
-            }}
-          />
-        ))}
+        {field.map((sprite, i) =>
+          layers[sprite.layerIndex].key === "near" ? null : (
+            <div
+              key={i}
+              ref={(el) => {
+                if (el) sprites.current[i] = el;
+              }}
+              className="cloud absolute aspect-[2/1]"
+              style={{
+                left: sprite.x + "%",
+                width: layers[sprite.layerIndex].width + "vw",
+                opacity: layers[sprite.layerIndex].opacity,
+                filter: "blur(" + layers[sprite.layerIndex].blur + "px)",
+                color: sprite.pink ? DUSTY_PINK : "#FFFFFF",
+              }}
+            />
+          ),
+        )}
       </div>
 
-      {/* Typography: BEHIND the 3D can at z-[8] so the can stands in front */}
+      {/* Words — under the canvas so the can occludes them. */}
       <div
-        ref={wordsLayer}
-        className="pointer-events-none fixed inset-0 z-[8] transition-opacity duration-300"
-        style={{ opacity: 0 }}
+        className="pointer-events-none fixed inset-0 z-[9] transition-opacity duration-500"
+        style={{ opacity: shown }}
       >
         {WORDS.map((word, i) => (
           <span
@@ -255,13 +253,13 @@ export default function SkydiveLayers() {
             className="wordmark absolute inset-x-0 flex text-[clamp(5rem,20vw,17rem)] leading-[0.82]"
             style={{
               top: word.top,
-              color: WORD_COLOR,
+              color: WORD_ORANGE,
               justifyContent: word.justify,
               paddingLeft: word.justify === "flex-start" ? word.pad : undefined,
               paddingRight: word.justify === "flex-end" ? word.pad : undefined,
               letterSpacing: "0.04em",
               WebkitTextStroke: "1px rgba(255, 244, 224, 0.08)",
-              textShadow: "0 0.04em 0.8em rgba(46, 107, 230, 0.28)",
+              textShadow: "0 0.04em 0.8em rgba(46, 107, 230, 0.18)",
             }}
           >
             {word.text.split("").map((letter, c) => (
@@ -281,6 +279,31 @@ export default function SkydiveLayers() {
             ))}
           </span>
         ))}
+      </div>
+
+      {/* Near clouds — over the canvas, so they cross in front of the can. */}
+      <div
+        className="pointer-events-none fixed inset-0 z-[15] overflow-hidden transition-opacity duration-500"
+        style={{ opacity: shown }}
+      >
+        {field.map((sprite, i) =>
+          layers[sprite.layerIndex].key === "near" ? (
+            <div
+              key={i}
+              ref={(el) => {
+                if (el) sprites.current[i] = el;
+              }}
+              className="cloud absolute aspect-[2/1]"
+              style={{
+                left: sprite.x + "%",
+                width: layers[sprite.layerIndex].width + "vw",
+                opacity: layers[sprite.layerIndex].opacity * 0.45,
+                filter: "blur(" + layers[sprite.layerIndex].blur + "px)",
+                color: sprite.pink ? DUSTY_PINK : "#FFFFFF",
+              }}
+            />
+          ) : null,
+        )}
       </div>
     </div>
   );

@@ -18,8 +18,8 @@ export const SKYDIVE_END = "+=400%";
  * near-white pair gave the cream clouds and the cyan can nothing to sit
  * against — everything washed into everything else.
  */
-export const SKY_TOP = "#075985";
-export const SKY_BOTTOM = "#38BDF8";
+export const SKY_TOP = "#2E6BE6";
+export const SKY_BOTTOM = "#BFE6F5";
 
 /**
  * Beat boundaries, as scroll progress through the pinned range.
