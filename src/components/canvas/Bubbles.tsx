@@ -6,9 +6,9 @@ import { useFrame } from "@react-three/fiber";
 
 type BubblesProps = {
   count: number;
-  /** Box the bubbles live in, in world units. */
+  /** Box the particles live in, in world units. */
   area: [number, number, number];
-  /** Base sphere radius before per-bubble variation. */
+  /** Base radius before per-particle variation. */
   radius: number;
   rise: number;
   color?: string;
@@ -29,8 +29,41 @@ function makeRandom(seed: number) {
 }
 
 /**
- * One InstancedMesh, one draw call, matrices written straight into the buffer.
- * No React state and no per-bubble components — this runs every frame.
+ * Generate a soft radial gradient texture at runtime — a bright centre that
+ * falls off to transparent at the edges. This reads as lens bokeh rather than
+ * a hard geometric sphere.
+ */
+function createBokehTexture(): THREE.Texture {
+  const size = 64;
+  const canvas = document.createElement("canvas");
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext("2d")!;
+
+  const gradient = ctx.createRadialGradient(
+    size / 2, size / 2, 0,
+    size / 2, size / 2, size / 2,
+  );
+  // Soft bright core → gentle falloff → transparent edge
+  gradient.addColorStop(0, "rgba(255, 255, 255, 1)");
+  gradient.addColorStop(0.15, "rgba(255, 255, 255, 0.8)");
+  gradient.addColorStop(0.4, "rgba(255, 255, 255, 0.35)");
+  gradient.addColorStop(0.7, "rgba(255, 255, 255, 0.08)");
+  gradient.addColorStop(1, "rgba(255, 255, 255, 0)");
+
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, size, size);
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.needsUpdate = true;
+  return texture;
+}
+
+/**
+ * Soft bokeh-style light particles. Uses instanced planes with a radial-
+ * gradient alpha map and additive blending so overlapping dots glow rather
+ * than stack opaque. Much smaller than the old sphere bubbles, with per-
+ * instance opacity variation for natural depth.
  */
 export default function Bubbles({
   count,
@@ -43,10 +76,12 @@ export default function Bubbles({
   fade,
 }: BubblesProps) {
   const mesh = useRef<THREE.InstancedMesh>(null!);
-  const material = useRef<THREE.MeshStandardMaterial>(null!);
+  const material = useRef<THREE.MeshBasicMaterial>(null!);
   const dummy = useMemo(() => new THREE.Object3D(), []);
 
-  const bubbles = useMemo(() => {
+  const bokehMap = useMemo(() => createBokehTexture(), []);
+
+  const particles = useMemo(() => {
     const random = makeRandom(seed);
     const [ax, ay, az] = area;
 
@@ -54,31 +89,39 @@ export default function Bubbles({
       x: (random() - 0.5) * ax,
       y: (random() - 0.5) * ay,
       z: (random() - 0.5) * az,
-      scale: 0.35 + random() * 0.8,
-      speed: 0.35 + random() * 0.9,
+      // Wider size range: some tiny specks, a few larger spots
+      scale: 0.15 + random() * 0.85,
+      speed: 0.2 + random() * 0.8,
       phase: random() * Math.PI * 2,
-      sway: 0.04 + random() * 0.12,
+      sway: 0.02 + random() * 0.08,
+      // Per-particle opacity multiplier for depth variation
+      alphaScale: 0.3 + random() * 0.7,
+      // Individual pulse speed so they don't breathe in unison
+      pulseSpeed: 0.3 + random() * 0.6,
+      pulsePhase: random() * Math.PI * 2,
     }));
   }, [count, area, seed]);
 
   useFrame((state, delta) => {
     const [, ay] = area;
     const time = state.clock.elapsedTime;
-    // Clamp delta so a backgrounded tab doesn't teleport every bubble.
     const step = Math.min(delta, 0.05);
 
-    for (let i = 0; i < bubbles.length; i++) {
-      const bubble = bubbles[i];
+    for (let i = 0; i < particles.length; i++) {
+      const p = particles[i];
 
-      bubble.y += step * bubble.speed * rise;
-      if (bubble.y > ay / 2) bubble.y = -ay / 2;
+      p.y += step * p.speed * rise;
+      if (p.y > ay / 2) p.y = -ay / 2;
+
+      // Gentle breathing scale
+      const pulse = 1 + Math.sin(time * p.pulseSpeed + p.pulsePhase) * 0.15;
 
       dummy.position.set(
-        bubble.x + Math.sin(time * 0.6 + bubble.phase) * bubble.sway,
-        bubble.y,
-        bubble.z,
+        p.x + Math.sin(time * 0.4 + p.phase) * p.sway,
+        p.y,
+        p.z,
       );
-      dummy.scale.setScalar(bubble.scale * radius);
+      dummy.scale.setScalar(p.scale * radius * pulse);
       dummy.updateMatrix();
       mesh.current.setMatrixAt(i, dummy.matrix);
     }
@@ -97,15 +140,17 @@ export default function Bubbles({
       args={[undefined, undefined, count]}
       frustumCulled={false}
     >
-      <sphereGeometry args={[1, 14, 12]} />
-      <meshStandardMaterial
+      <planeGeometry args={[2, 2]} />
+      <meshBasicMaterial
         ref={material}
         color={color}
         transparent
         opacity={opacity}
         depthWrite={false}
-        roughness={0.25}
-        metalness={0}
+        alphaMap={bokehMap}
+        blending={THREE.AdditiveBlending}
+        toneMapped={false}
+        side={THREE.DoubleSide}
       />
     </instancedMesh>
   );

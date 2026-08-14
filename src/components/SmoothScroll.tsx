@@ -28,7 +28,14 @@ export default function SmoothScroll() {
 
     // `anchors` routes in-page links through Lenis; a native jump would fight
     // the smoothing and desync every scrubbed ScrollTrigger on the way past.
-    const lenis = new Lenis({ lerp: 0.1, anchors: true });
+    const isTouch = "ontouchstart" in window || navigator.maxTouchPoints > 0;
+    const lenis = new Lenis({
+      lerp: isTouch ? 0.12 : 0.1,
+      duration: isTouch ? 1.0 : 1.2,
+      smoothWheel: true,
+      touchMultiplier: 1.6,
+      anchors: true,
+    });
 
     setLenis(lenis);
     lenis.on("scroll", ScrollTrigger.update);

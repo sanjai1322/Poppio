@@ -8,8 +8,11 @@
 export const flavorProgress = { current: 0 };
 export const carbonationProgress = { current: 0 };
 
-/** 0 = hero layout, 1 = cluster layout. Written by MeetAllFour's ScrollTrigger. */
+/** 0 = hero layout, 1 = cluster layout. Written by MeetAllFour's entrance ScrollTrigger. */
 export const clusterProgress = { current: 0 };
+
+/** 0 = cluster at rest, 1 = handoff to skydive complete. Written by MeetAllFour's exit ScrollTrigger. */
+export const handoffProgress = { current: 0 };
 
 /**
  * Extra Y rotation, in radians, applied to the flavour-scroll can on top of its

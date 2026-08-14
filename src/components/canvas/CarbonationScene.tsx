@@ -53,15 +53,15 @@ export default function CarbonationScene() {
 
       <group position={[x, 0, 0]}>
         <Bubbles
-          count={isMobile ? 30 : 70}
+          count={isMobile ? 40 : 90}
           area={[
             viewport.width * (isMobile ? 1.1 : 0.55),
             viewport.height * 1.6,
             2.4,
           ]}
-          radius={0.055}
+          radius={0.035}
           rise={idle}
-          opacity={0.3}
+          opacity={0.25}
           seed={7}
           fade={bubbleFade}
         />

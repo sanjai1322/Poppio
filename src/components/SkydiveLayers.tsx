@@ -31,7 +31,8 @@ const LAYERS = [
 
 const CYCLE = 150;
 const DUSTY_PINK = "#F2D4DC";
-const WORD_ORANGE = "#F97316";
+/** Cream-white at low opacity — atmospheric depth, not a competing headline. */
+const WORD_COLOR = "rgba(255, 244, 224, 0.14)";
 
 /** Deterministic jitter, so scrubbing back up retraces the same field. */
 function hash(a: number, b: number) {
@@ -50,9 +51,9 @@ function smoothstep(x: number, a: number, b: number) {
  * occlusion is meant to be a depth cue on an edge, not the whole word.
  */
 const WORDS = [
-  { text: "Dive", at: 0.22, top: "15%", justify: "flex-start", pad: "6vw" },
-  { text: "Into", at: 0.4, top: "30%", justify: "flex-end", pad: "6vw" },
-  { text: "Better", at: 0.58, top: "62%", justify: "flex-start", pad: "4vw" },
+  { text: "Dive",   at: 0.22, top: "12%",  justify: "flex-start", pad: "8vw" },
+  { text: "Into",   at: 0.40, top: "35%",  justify: "flex-end",   pad: "8vw" },
+  { text: "Better", at: 0.58, top: "60%",  justify: "flex-start", pad: "5vw" },
 ];
 
 /**
@@ -116,16 +117,31 @@ export default function SkydiveLayers() {
     () => {
       plate.current = document.getElementById("bg");
 
+      // Handoff trigger: smoothly cross-fades background to sky and fades clouds in
+      ScrollTrigger.create({
+        trigger: "#meet-all-four",
+        start: "center center",
+        endTrigger: "#" + SKYDIVE_ID,
+        end: SKYDIVE_START,
+        scrub: true,
+        onToggle: (self) => {
+          if (self.isActive) setActive(true);
+        },
+        onUpdate: (self) => {
+          const h = self.progress;
+          if (sky.current && skydiveProgress.current === 0) {
+            sky.current.style.opacity = String(smoothstep(h, 0.25, 0.95));
+          }
+        },
+      });
+
       ScrollTrigger.create({
         trigger: "#" + SKYDIVE_ID,
         start: SKYDIVE_START,
         end: SKYDIVE_END,
         onToggle: (self) => {
           setActive(self.isActive);
-          // onUpdate stops firing the moment the section deactivates, so the
-          // sky has to be cleared here or it stays painted over every section
-          // that follows.
-          if (!self.isActive && sky.current) sky.current.style.opacity = "0";
+          if (!self.isActive && sky.current && self.progress > 0.5) sky.current.style.opacity = "0";
         },
         onUpdate: (self) => {
           const p = self.progress;
@@ -137,8 +153,6 @@ export default function SkydiveLayers() {
 
             const layer = layers[sprite.layerIndex];
             const raw = sprite.baseY - p * layer.travel;
-            // Modulo recycling rather than a snap-back branch: it wraps in
-            // both directions, so scrubbing back retraces the same field.
             const wrapped = ((raw % CYCLE) + CYCLE) % CYCLE;
             const wrapIndex = Math.floor(raw / CYCLE);
             const jitterX = (hash(i, wrapIndex) - 0.5) * 24;
@@ -154,10 +168,6 @@ export default function SkydiveLayers() {
               ")";
           });
 
-          // One word at a time, each cascading out as the next arrives. The
-          // letters carry the motion rather than the word block: each rises
-          // out of its own mask on a stagger, so the type reads as set rather
-          // than as a caption fading up.
           WORDS.forEach((word, i) => {
             const letters = chars.current[i];
             if (!letters) return;
@@ -170,7 +180,6 @@ export default function SkydiveLayers() {
               const rising = smoothstep(p, inAt, inAt + CHAR_IN);
               const leaving = smoothstep(p, outAt, outAt + CHAR_OUT);
 
-              // Clipped by the mask, so nothing shows outside the line box.
               const y = (1 - rising) * 115 - leaving * 115;
               const tilt = (1 - rising) * 9 - leaving * 7;
 
@@ -180,15 +189,11 @@ export default function SkydiveLayers() {
             });
           });
 
-          // Hand straight from sky to the first flavour's colour. The old
-          // exit swept a dark dome up over the sky, which landed the viewer on
-          // a dead ink screen before the next section had anything to show.
+          // Hand straight from sky to the first flavour's colour at the end of skydive
           const handover = smoothstep(p, BEAT.emptyEnd, 1);
-          sky.current.style.opacity = String(
-            smoothstep(p, 0, BEAT.handoffEnd) * (1 - handover),
-          );
+          sky.current.style.opacity = String(1 - handover);
           if (plate.current) {
-            plate.current.style.backgroundColor = FLAVORS[0].color;
+            plate.current.style.background = FLAVORS[3].gradient;
           }
         },
       });
@@ -246,14 +251,16 @@ export default function SkydiveLayers() {
         {WORDS.map((word, i) => (
           <span
             key={word.text}
-            className="wordmark absolute inset-x-0 flex text-[clamp(4rem,18vw,15rem)] leading-[0.82]"
+            className="wordmark absolute inset-x-0 flex text-[clamp(5rem,20vw,17rem)] leading-[0.82]"
             style={{
               top: word.top,
-              color: WORD_ORANGE,
+              color: WORD_COLOR,
               justifyContent: word.justify,
               paddingLeft: word.justify === "flex-start" ? word.pad : undefined,
               paddingRight: word.justify === "flex-end" ? word.pad : undefined,
-              textShadow: "0 0.06em 0.5em rgba(20,40,90,0.22)",
+              letterSpacing: "0.04em",
+              WebkitTextStroke: "1px rgba(255, 244, 224, 0.08)",
+              textShadow: "0 0.04em 0.8em rgba(46, 107, 230, 0.18)",
             }}
           >
             {word.text.split("").map((letter, c) => (

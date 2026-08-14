@@ -17,34 +17,6 @@ gsap.registerPlugin(useGSAP, ScrollTrigger);
 
 const BEATS = FLAVORS.length;
 
-/**
- * Returns true when two hex colours are far enough apart in hue that an RGB
- * interpolation would pass through the desaturated centre of the wheel.
- * Threshold: 120° — roughly one-third of the wheel.
- */
-function hexToHue(hex: string): number {
-  const n = parseInt(hex.replace("#", ""), 16);
-  const r = ((n >> 16) & 0xff) / 255;
-  const g = ((n >> 8) & 0xff) / 255;
-  const b = (n & 0xff) / 255;
-  const max = Math.max(r, g, b);
-  const min = Math.min(r, g, b);
-  const d = max - min;
-  if (d === 0) return 0;
-  let h = 0;
-  if (max === r) h = ((g - b) / d + 6) % 6;
-  else if (max === g) h = (b - r) / d + 2;
-  else h = (r - g) / d + 4;
-  return h * 60;
-}
-
-function hueDistanceLarge(a: string, b: string): boolean {
-  const ha = hexToHue(a);
-  const hb = hexToHue(b);
-  const d = Math.abs(ha - hb);
-  return Math.min(d, 360 - d) > 120;
-}
-
 export default function FlavorScroll() {
   const root = useRef<HTMLElement>(null!);
   const splits = useRef<SplitText[]>([]);
@@ -86,6 +58,8 @@ export default function FlavorScroll() {
         scrub: true,
         onToggle: (self) => flavorSectionStore.set(self.isActive),
         onEnter: () => {
+          const bg = document.getElementById("bg");
+          if (bg) bg.style.background = FLAVORS[activeRef.current].gradient;
           if (reducedMotion) return;
           gsap.fromTo(
             cameraDolly,
@@ -93,24 +67,32 @@ export default function FlavorScroll() {
             { current: 0, duration: 1.2, ease: "power2.out", overwrite: true },
           );
         },
+        onEnterBack: () => {
+          const bg = document.getElementById("bg");
+          if (bg) bg.style.background = FLAVORS[activeRef.current].gradient;
+        },
+        onLeaveBack: () => {
+          const bg = document.getElementById("bg");
+          if (bg) bg.style.background = FLAVORS[3].gradient;
+        },
         onUpdate: (self) => {
-            flavorProgress.current = self.progress;
-            // Mirrors the trigger every update rather than trusting onToggle:
-            // a scroll that lands inside the section in one frame never fires
-            // onToggle, and an unconditional true leaks the backdrop into the
-            // hero on the way back up.
-            flavorSectionStore.set(self.isActive);
+          flavorProgress.current = self.progress;
+          // Mirrors the trigger every update rather than trusting onToggle:
+          // a scroll that lands inside the section in one frame never fires
+          // onToggle, and an unconditional true leaks the backdrop into the
+          // hero on the way back up.
+          flavorSectionStore.set(self.isActive);
 
-            const index = Math.min(
-              BEATS - 1,
-              Math.floor(self.progress * BEATS),
-            );
-            if (index !== activeRef.current) {
-              activeRef.current = index;
-              setActive(index);
-              activeFlavorStore.set(index);
-            }
-          },
+          const index = Math.min(
+            BEATS - 1,
+            Math.floor(self.progress * BEATS),
+          );
+          if (index !== activeRef.current) {
+            activeRef.current = index;
+            setActive(index);
+            activeFlavorStore.set(index);
+          }
+        },
       });
 
     },
@@ -146,7 +128,7 @@ export default function FlavorScroll() {
         );
         gsap.set(incoming.lines, { yPercent: 0, autoAlpha: 1 });
         cameraDolly.current = 0;
-        if (bg) gsap.set(bg, { backgroundColor: flavor.color });
+        if (bg) bg.style.background = flavor.gradient;
         if (nav) gsap.set(nav, { color: navColor });
         return;
       }
@@ -173,10 +155,6 @@ export default function FlavorScroll() {
       // Camera pulls back as the can breaks into its spin, then eases in and
       // settles on the new label. The push-in outlasts the spin on purpose —
       // the settle is what makes a beat feel like it lands rather than stops.
-      //
-      // Tweened from wherever the dolly currently is rather than fromTo'd: a
-      // fixed start value snaps the camera on every beat, which jolts badly
-      // when a fast scroll fires beats back to back.
       timeline
         .to(
           cameraDolly,
@@ -192,34 +170,13 @@ export default function FlavorScroll() {
       timeline.call(() => setWorn(active), undefined, half);
 
       if (bg) {
-        // For large hue jumps (e.g. orange↔cyan via card grid), route through
-        // cream to avoid the RGB dead-zone purple. For adjacent hues the direct
-        // tween is fast enough that the midpoint is invisible.
-        const fromColor = FLAVORS[from].color;
-        const needsWaypoint = hueDistanceLarge(fromColor, flavor.color);
-
-        if (needsWaypoint) {
-          timeline.to(
-            bg,
-            { backgroundColor: CREAM, duration: 0.25, ease: "power2.in" },
-            half - 0.17,
-          );
-          timeline.to(
-            bg,
-            { backgroundColor: flavor.color, duration: 0.25, ease: "power2.out" },
-            half,
-          );
-        } else {
-          timeline.to(
-            bg,
-            {
-              backgroundColor: flavor.color,
-              duration: 0.34,
-              ease: "power2.inOut",
-            },
-            half - 0.17,
-          );
-        }
+        timeline.call(
+          () => {
+            bg.style.background = flavor.gradient;
+          },
+          undefined,
+          half - 0.17,
+        );
       }
 
       if (nav) {

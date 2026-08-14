@@ -113,14 +113,14 @@ export default function HeroScene() {
       <PerspectiveCamera makeDefault fov={30} position={[0, 0, 5]} />
       <Lighting />
 
-      {/* Soft spheres drifting behind the cans — one draw call. */}
+      {/* Soft bokeh particles drifting behind the cans — one draw call. */}
       <group position={[0, 0, -2.2]}>
         <Bubbles
-          count={isMobile ? 12 : 26}
+          count={isMobile ? 16 : 35}
           area={[viewport.width * 1.4, viewport.height * 1.5, 2]}
-          radius={0.28}
+          radius={0.18}
           rise={0.25 * idle}
-          opacity={0.16}
+          opacity={0.14}
           seed={3}
         />
       </group>

@@ -6,7 +6,7 @@ import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import CarbonationScene from "@/components/canvas/CarbonationScene";
-import { INK } from "@/lib/flavors";
+import { FLAVORS } from "@/lib/flavors";
 import { carbonationProgress } from "@/lib/scrollState";
 import { SLAM_FROM, SLAM_IN, splitForSlam } from "@/lib/slam";
 
@@ -28,26 +28,18 @@ export default function Carbonation() {
         start: "top top",
         end: "bottom bottom",
         scrub: true,
+        onEnter: () => {
+          const bg = document.getElementById("bg");
+          if (bg) bg.style.background = FLAVORS[3].gradient;
+        },
+        onEnterBack: () => {
+          const bg = document.getElementById("bg");
+          if (bg) bg.style.background = FLAVORS[3].gradient;
+        },
         onUpdate: (self) => {
           carbonationProgress.current = self.progress;
         },
       });
-
-      // Land the colour plate on ink before the grid's own ink panel arrives,
-      // so the section boundary isn't a hard cyan-to-black cut.
-      const bg = document.getElementById("bg");
-      if (bg) {
-        gsap.to(bg, {
-          backgroundColor: INK,
-          ease: "none",
-          scrollTrigger: {
-            trigger: root.current,
-            start: "center center",
-            end: "bottom bottom",
-            scrub: true,
-          },
-        });
-      }
 
       gsap.matchMedia().add("(prefers-reduced-motion: no-preference)", () => {
         const heading = root.current.querySelector("h2");
@@ -81,31 +73,31 @@ export default function Carbonation() {
           </Suspense>
         </View>
 
-        <div className="relative mx-auto grid w-full max-w-7xl gap-16 px-6 md:grid-cols-2 md:px-10">
+        <div className="relative mx-auto grid w-full max-w-7xl gap-8 md:gap-16 px-6 md:grid-cols-2 md:px-10">
           <div>
             <p className="text-[0.6rem] uppercase tracking-[0.4em] text-cream/40">
               Why it works
             </p>
-            <h2 className="wordmark mt-5 text-[clamp(2.25rem,6vw,4.5rem)] leading-[0.9] text-cream">
+            <h2 className="wordmark mt-4 md:mt-5 text-[clamp(2rem,6vw,4.5rem)] leading-[0.9] text-cream">
               The fizz is fun.
               <br />
               The fibre is
               <br />
               the point.
             </h2>
-            <p className="mt-7 max-w-md text-base leading-relaxed text-cream/80 md:text-lg">
+            <p className="mt-5 md:mt-7 max-w-md text-sm sm:text-base leading-relaxed text-cream/80 md:text-lg">
               Every can carries 3g of plant prebiotics — the stuff that feeds the
               good bacteria already living in your gut. Nothing synthetic,
               nothing you need a chemistry degree to pronounce.
             </p>
 
-            <dl className="mt-8 grid grid-cols-3 gap-6 border-t border-cream/20 pt-8 md:mt-12">
+            <dl className="mt-6 md:mt-12 grid grid-cols-3 gap-3 sm:gap-6 border-t border-cream/20 pt-6 md:pt-8">
               {STATS.map((stat) => (
                 <div key={stat.label} data-stat>
-                  <dt className="wordmark text-4xl text-cream md:text-5xl">
+                  <dt className="wordmark text-2xl sm:text-3xl md:text-5xl text-cream">
                     {stat.value}
                   </dt>
-                  <dd className="mt-2 text-[0.7rem] uppercase leading-relaxed tracking-[0.15em] text-cream/60">
+                  <dd className="mt-1 sm:mt-2 text-[0.6rem] sm:text-[0.68rem] md:text-[0.7rem] uppercase leading-relaxed tracking-[0.1em] sm:tracking-[0.15em] text-cream/60">
                     {stat.label}
                   </dd>
                 </div>

@@ -36,19 +36,16 @@ export default function Hero() {
     <section
       id="top"
       ref={root}
-      className="relative flex min-h-[100svh] flex-col items-center justify-center overflow-hidden px-6 py-28 text-center"
+      className="relative flex min-h-[100svh] flex-col items-center justify-center overflow-hidden px-5 pt-20 pb-24 md:px-6 md:py-28 text-center"
     >
-      {/* Cans are now rendered at the Canvas root level via CanCluster —
-          no View needed here. */}
-
       <p
         data-hero-in
-        className="relative text-[0.6rem] font-medium uppercase tracking-[0.4em] text-cream/50"
+        className="relative text-[0.65rem] font-bold uppercase tracking-[0.45em] text-cream/70"
       >
         Prebiotic soda
       </p>
 
-      <h1 className="wordmark relative mt-6 text-[clamp(3.25rem,13vw,11rem)] leading-[0.82] text-cream">
+      <h1 className="wordmark relative mt-4 md:mt-6 text-[clamp(3.2rem,11.5vw,9.5rem)] font-black leading-[0.85] tracking-tight text-cream">
         Tropical
         <br />
         soda with
@@ -58,7 +55,7 @@ export default function Hero() {
 
       <p
         data-hero-in
-        className="relative mt-8 max-w-md text-base leading-relaxed text-cream/80 md:text-lg"
+        className="relative mt-5 md:mt-7 max-w-sm md:max-w-md text-sm sm:text-base font-normal leading-relaxed text-cream/90 md:text-lg"
       >
         Four island flavours. 3g of plant prebiotic fibre. None of the usual
         nonsense.
@@ -67,14 +64,18 @@ export default function Hero() {
       <a
         data-hero-in
         href="#flavours"
-        className="relative mt-10 rounded-full bg-cream px-8 py-4 text-xs font-bold uppercase tracking-[0.2em] text-ink transition-transform duration-300 hover:scale-105"
+        className="relative mt-8 md:mt-10 rounded-full bg-cream px-8 py-4 text-xs font-bold uppercase tracking-[0.2em] text-ink transition-transform duration-300 hover:scale-105"
       >
         Meet the four
       </a>
 
-      <span className="absolute bottom-8 text-[0.65rem] uppercase tracking-[0.3em] text-cream/50">
-        Scroll
-      </span>
+      {/* Scroll indicator with vertical line */}
+      <div className="absolute bottom-8 flex flex-col items-center gap-3">
+        <span className="text-[0.65rem] uppercase tracking-[0.3em] text-cream/50">
+          Scroll
+        </span>
+        <span className="block h-8 w-px bg-cream/30" />
+      </div>
     </section>
   );
 }
