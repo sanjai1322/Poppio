@@ -185,7 +185,7 @@ export default function CanCluster() {
           }
         }
       } else if (sd > 0) {
-        // --- Phase 3: Pinned Skydive flight ---
+        // --- Phase 3: Pinned Skydive flight with dynamic 360° rolling tumble ---
         if (i !== SKYDIVE_SLOT) {
           can.visible = false;
           can.scale.setScalar(0);
@@ -202,9 +202,10 @@ export default function CanCluster() {
           );
           can.scale.setScalar(skyScale * breathe);
 
-          const targetRotY = CAN_FRONT_Y + Math.sin(sd * Math.PI * 3) * 0.22;
-          const targetRotX = 0.12 + Math.cos(sd * Math.PI * 2.4) * 0.08;
-          const targetRotZ = -drift * 0.25;
+          // Rolling spin through the clouds: continuous 360° revolutions + dynamic wobble
+          const targetRotY = CAN_FRONT_Y + cluster.rot[1] + sd * (1 / 0.20) * Math.PI * 2;
+          const targetRotX = cluster.rot[0] + Math.sin(sd * (1 / 0.60) * Math.PI * 2) * 0.32;
+          const targetRotZ = Math.sin(sd * Math.PI * 4) * 0.12 - drift * 0.22;
 
           can.rotation.set(targetRotX, targetRotY, targetRotZ);
         }
