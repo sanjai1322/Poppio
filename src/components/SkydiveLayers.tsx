@@ -54,7 +54,7 @@ const CHAR_STAGGER = 0.014;
 const WORD_HOLD = 0.12;
 
 const WORD_COLOR = "#FFF4E0";
-const DUSTY_PINK = "#F2B8B2";
+/** All clouds are pure white for a clean cinematic sky. */
 
 function hash(a: number, b: number): number {
   const sin = Math.sin(a * 12.9898 + b * 78.233) * 43758.5453;
@@ -91,7 +91,7 @@ export default function SkydiveLayers() {
           x: hash(layerIndex + 1, i) * 88,
           baseY: (i / count) * CYCLE + hash(i, layerIndex + 3) * 30,
           scale: 0.75 + hash(i + 7, layerIndex) * 0.75,
-          pink: hash(i + 11, layerIndex + 5) > 0.65,
+          pink: false,
         });
       }
     });
@@ -236,7 +236,7 @@ export default function SkydiveLayers() {
                 width: layers[sprite.layerIndex].width + "vw",
                 opacity: layers[sprite.layerIndex].opacity,
                 filter: "blur(" + layers[sprite.layerIndex].blur + "px)",
-                color: sprite.pink ? DUSTY_PINK : "#FFFFFF",
+                color: "#FFFFFF",
               }}
             />
           ),
@@ -300,7 +300,7 @@ export default function SkydiveLayers() {
                 width: layers[sprite.layerIndex].width + "vw",
                 opacity: layers[sprite.layerIndex].opacity * 0.6,
                 filter: "blur(" + layers[sprite.layerIndex].blur + "px)",
-                color: sprite.pink ? DUSTY_PINK : "#FFFFFF",
+                color: "#FFFFFF",
               }}
             />
           ) : null,
