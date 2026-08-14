@@ -216,10 +216,6 @@ export default function FlavorScroll() {
         </View>
 
         <div className="relative mx-auto h-full max-w-7xl px-6 md:px-10">
-          <p className="absolute right-6 top-28 text-[0.6rem] uppercase tracking-[0.4em] text-cream/40 md:right-10">
-            The lineup
-          </p>
-
           {/* Copy holds the left third, vertically centred; the can owns the
               right of the frame and the numeral bleeds off behind it. */}
           {FLAVORS.map((flavor, i) => {

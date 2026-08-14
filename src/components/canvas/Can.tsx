@@ -20,7 +20,7 @@ export const CAN_CENTER_Y = -CAN_HEIGHT / 2;
  * side. Measured against rendered frames, not derived. Every scene that wants
  * a can facing the viewer must start from this.
  */
-export const CAN_FRONT_TURNS = 0.9;
+export const CAN_FRONT_TURNS = 0.40;
 export const CAN_FRONT_Y = CAN_FRONT_TURNS * Math.PI * 2;
 
 const LABEL_MATERIAL = "POPPIO_Label";

@@ -97,12 +97,12 @@ export default function Nav() {
         </svg>
       </a>
 
-      <nav className="flex items-center gap-6 text-xs font-medium uppercase tracking-[0.2em]">
+      <nav className="flex items-center gap-6 sm:gap-8 text-xs font-medium uppercase tracking-[0.2em]">
         {LINKS.map((link) => (
           <a
             key={link.href}
             href={link.href}
-            className="hidden transition-opacity hover:opacity-60 sm:block"
+            className="transition-opacity hover:opacity-60"
           >
             {link.label}
           </a>
@@ -110,15 +110,6 @@ export default function Nav() {
         <a href="#footer" className="transition-opacity hover:opacity-60">
           Find us
         </a>
-        {/* Hamburger menu button */}
-        <button
-          aria-label="Menu"
-          className="flex h-10 w-10 flex-col items-center justify-center gap-[5px] rounded-full border border-current/30 transition-opacity hover:opacity-60"
-        >
-          <span className="block h-[1.5px] w-4 rounded-full bg-current" />
-          <span className="block h-[1.5px] w-4 rounded-full bg-current" />
-          <span className="block h-[1.5px] w-4 rounded-full bg-current" />
-        </button>
       </nav>
     </header>
   );

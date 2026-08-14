@@ -27,32 +27,32 @@ const FLAVOR_BY_SLOT = [0, 3, 1, 2];
 
 /** Hero: Desktop pair on stage, the other two parked off-frame. */
 const HERO: CanPose[] = [
-  { pos: [-0.315, -0.1, 0], rot: [0, 0.28, 0.18], scale: 1 },
-  { pos: [0.315, -0.14, -0.6], rot: [0, 0.38, -0.28], scale: 0.9 },
+  { pos: [-0.315, -0.1, 0], rot: [0, -0.15, 0.18], scale: 1 },
+  { pos: [0.315, -0.14, -0.6], rot: [0, 0.15, -0.28], scale: 0.9 },
   { pos: [0.22, 1.0, -1.2], rot: [0, -0.2, 0.3], scale: 0.02 },
   { pos: [0.42, -1.0, -1.2], rot: [0, 0.2, -0.3], scale: 0.02 },
 ];
 
 /** Hero: Mobile pair with tighter horizontal spacing to fit portrait screens cleanly. */
 const HERO_MOBILE: CanPose[] = [
-  { pos: [-0.22, -0.06, 0], rot: [0, 0.26, 0.16], scale: 0.95 },
-  { pos: [0.22, -0.10, -0.6], rot: [0, 0.34, -0.22], scale: 0.85 },
+  { pos: [-0.22, -0.06, 0], rot: [0, -0.12, 0.16], scale: 0.95 },
+  { pos: [0.22, -0.10, -0.6], rot: [0, 0.12, -0.22], scale: 0.85 },
   { pos: [0.2, 1.0, -1.2], rot: [0, -0.2, 0.3], scale: 0.02 },
 ];
 
 /** Cluster: Desktop layout grouped right of centre. */
 const CLUSTER: CanPose[] = [
-  { pos: [0.12, -0.01, 0.3],  rot: [0, 0.15, 0.05],   scale: 0.6 },
-  { pos: [0.28,  0.08, -0.7], rot: [0.03, 0.28, -0.1], scale: 0.5 },
-  { pos: [0.06,  0.1, -0.4],  rot: [-0.03, -0.24, 0.1],scale: 0.52 },
-  { pos: [0.24, -0.14, 0.05], rot: [0.02, 0.16, -0.14], scale: 0.56 },
+  { pos: [0.12, -0.01, 0.3],  rot: [0, -0.12, 0.05],   scale: 0.6 },
+  { pos: [0.28,  0.08, -0.7], rot: [0.03, 0.15, -0.1], scale: 0.5 },
+  { pos: [0.06,  0.1, -0.4],  rot: [-0.03, -0.12, 0.1],scale: 0.52 },
+  { pos: [0.24, -0.14, 0.05], rot: [0.02, 0.10, -0.14], scale: 0.56 },
 ];
 
 /** Cluster: Mobile layout centered below headline for perfect vertical balance. */
 const CLUSTER_MOBILE: CanPose[] = [
-  { pos: [-0.02, -0.16, 0.3],  rot: [0, 0.12, 0.04],   scale: 0.52 },
-  { pos: [0.16,  -0.10, -0.7], rot: [0.02, 0.20, -0.08], scale: 0.44 },
-  { pos: [-0.16, -0.08, -0.4], rot: [-0.02, -0.18, 0.08],scale: 0.46 },
+  { pos: [-0.02, -0.16, 0.3],  rot: [0, -0.08, 0.04],  scale: 0.52 },
+  { pos: [0.16,  -0.10, -0.7], rot: [0.02, 0.10, -0.08], scale: 0.44 },
+  { pos: [-0.16, -0.08, -0.4], rot: [-0.02, -0.10, 0.08],scale: 0.46 },
 ];
 
 const TUMBLE_TURNS = [2, -3, 3, -2];
