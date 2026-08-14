@@ -1,43 +1,24 @@
 "use client";
 
 import { useRef } from "react";
-import { useGSAP } from "@gsap/react";
-import gsap from "gsap";
-
-gsap.registerPlugin(useGSAP);
 
 const LINKS = [
+  { label: "Flavours", href: "#flavours" },
+  { label: "Why it works", href: "#why" },
   { label: "Stockists", href: "#" },
   { label: "Instagram", href: "#" },
   { label: "Wholesale", href: "#" },
   { label: "Say hi", href: "#" },
 ];
 
-const WORDMARK = "POPPIO".split("");
-
 export default function Footer() {
   const root = useRef<HTMLElement>(null!);
-
-  const { contextSafe } = useGSAP({ scope: root });
-
-  // Stagger down the letters and back — a wave, not a bounce per letter.
-  const wave = contextSafe(() => {
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-
-    gsap.to("[data-letter]", {
-      y: -18,
-      duration: 0.34,
-      ease: "power2.out",
-      stagger: { each: 0.05, yoyo: true, repeat: 1 },
-      clearProps: "transform",
-    });
-  });
 
   return (
     <footer
       id="footer"
       ref={root}
-      className="relative bg-ink px-6 pb-10 pt-24 md:px-10"
+      className="relative bg-ink px-6 pb-12 pt-24 md:px-10 md:pb-16 md:pt-32"
     >
       <div className="mx-auto max-w-7xl">
         <nav className="flex flex-wrap gap-x-10 gap-y-4 border-b border-cream/15 pb-12 text-xs uppercase tracking-[0.2em] text-cream/70">
@@ -45,28 +26,96 @@ export default function Footer() {
             <a
               key={link.label}
               href={link.href}
-              className="transition-colors hover:text-cream"
+              className="transition-colors duration-200 hover:text-cream"
             >
               {link.label}
             </a>
           ))}
         </nav>
 
-        <p
-          aria-label="POPPIO"
-          onPointerEnter={wave}
-          className="wordmark mt-12 flex w-full cursor-default text-[15.5vw] leading-[0.8] text-cream"
-        >
-          {WORDMARK.map((letter, i) => (
-            <span key={i} data-letter aria-hidden className="inline-block">
-              {letter}
-            </span>
-          ))}
-        </p>
+        {/* POPPIO Large Waving Liquid Wordmark */}
+        <div className="group mt-12 w-full select-none md:mt-16">
+          <svg
+            viewBox="0 0 1000 220"
+            className="w-full h-auto overflow-visible"
+            aria-label="POPPIO"
+            role="img"
+          >
+            <defs>
+              {/* Clip path for the giant POPPIO wordmark typography */}
+              <clipPath id="poppio-footer-wave-clip">
+                <text
+                  x="50%"
+                  y="180"
+                  textAnchor="middle"
+                  className="wordmark"
+                  style={{
+                    fontFamily: "var(--font-display)",
+                    fontWeight: 900,
+                    fontSize: "220px",
+                    letterSpacing: "-0.035em",
+                  }}
+                >
+                  POPPIO
+                </text>
+              </clipPath>
+            </defs>
 
-        <p className="mt-8 text-[0.7rem] uppercase tracking-[0.2em] text-cream/40">
-          © {new Date().getFullYear()} POPPIO — Drink responsibly-ish.
-        </p>
+            {/* Ghost base outline / background fill */}
+            <text
+              x="50%"
+              y="180"
+              textAnchor="middle"
+              className="wordmark transition-opacity duration-300 opacity-25 group-hover:opacity-40"
+              fill="#FFF4E0"
+              style={{
+                fontFamily: "var(--font-display)",
+                fontWeight: 900,
+                fontSize: "220px",
+                letterSpacing: "-0.035em",
+              }}
+            >
+              POPPIO
+            </text>
+
+            {/* Masked Animated Wave Layer */}
+            <g clipPath="url(#poppio-footer-wave-clip)">
+              {/* Base liquid level */}
+              <rect x="0" y="0" width="1000" height="220" fill="#FFF4E0" opacity="0.22" />
+
+              {/* Primary moving fluid wave */}
+              <g className="animate-wave-flow" style={{ width: "2000px" }}>
+                <path
+                  d="M 0 95 Q 250 50 500 95 T 1000 95 T 1500 95 T 2000 95 L 2000 220 L 0 220 Z"
+                  fill="#FFF4E0"
+                  opacity="0.9"
+                />
+              </g>
+
+              {/* Secondary counter wave with shimmer effect */}
+              <g className="animate-wave-flow-reverse" style={{ width: "2000px" }}>
+                <path
+                  d="M 0 115 Q 250 160 500 115 T 1000 115 T 1500 115 T 2000 115 L 2000 220 L 0 220 Z"
+                  fill="#FFF4E0"
+                  opacity="0.65"
+                />
+              </g>
+
+              {/* Sparkling effervescent soda bubbles rising inside letters */}
+              <circle cx="155" cy="135" r="4.5" fill="#FFF4E0" className="animate-pulse-glow" />
+              <circle cx="310" cy="160" r="3.8" fill="#FFF4E0" className="animate-pulse-glow" style={{ animationDelay: "0.7s" }} />
+              <circle cx="475" cy="120" r="5.2" fill="#FFF4E0" className="animate-pulse-glow" style={{ animationDelay: "1.4s" }} />
+              <circle cx="645" cy="155" r="4.2" fill="#FFF4E0" className="animate-pulse-glow" style={{ animationDelay: "0.3s" }} />
+              <circle cx="815" cy="130" r="4.8" fill="#FFF4E0" className="animate-pulse-glow" style={{ animationDelay: "1.1s" }} />
+              <circle cx="910" cy="140" r="3.6" fill="#FFF4E0" className="animate-pulse-glow" style={{ animationDelay: "1.8s" }} />
+            </g>
+          </svg>
+        </div>
+
+        <div className="mt-8 flex flex-col justify-between gap-4 border-t border-cream/10 pt-6 text-[0.7rem] uppercase tracking-[0.2em] text-cream/40 sm:flex-row sm:items-center">
+          <p>© {new Date().getFullYear()} POPPIO — Drink responsibly-ish.</p>
+          <p>Prebiotic Tropical Soda • 3g Fibre • 40 Cal</p>
+        </div>
       </div>
     </footer>
   );
