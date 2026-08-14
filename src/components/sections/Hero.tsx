@@ -55,7 +55,7 @@ export default function Hero() {
 
       <p
         data-hero-in
-        className="relative mt-5 md:mt-7 max-w-sm md:max-w-md text-sm sm:text-base font-normal leading-relaxed text-cream/90 md:text-lg"
+        className="relative mt-5 md:mt-7 max-w-sm md:max-w-md text-sm sm:text-base font-normal leading-relaxed text-cream/90 md:text-lg drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)] md:drop-shadow-none"
       >
         Four island flavours. 3g of plant prebiotic fibre. None of the usual
         nonsense.

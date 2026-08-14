@@ -223,7 +223,7 @@ export default function FlavorScroll() {
               <article
                 key={flavor.id}
                 data-flavor-name
-                className="absolute bottom-16 left-6 right-6 md:bottom-auto md:left-10 md:right-auto md:top-1/2 md:w-[42%] md:-translate-y-1/2"
+                className="absolute bottom-10 left-6 right-6 md:bottom-auto md:left-10 md:right-auto md:top-1/2 md:w-[42%] md:-translate-y-1/2"
               >
 
                 <p

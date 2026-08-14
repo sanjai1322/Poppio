@@ -35,8 +35,8 @@ const HERO: CanPose[] = [
 
 /** Hero: Mobile pair with tighter horizontal spacing to fit portrait screens cleanly. */
 const HERO_MOBILE: CanPose[] = [
-  { pos: [-0.22, -0.06, 0], rot: [0, -0.04, 0.16], scale: 0.95 },
-  { pos: [0.22, -0.10, -0.6], rot: [0, 0.04, -0.22], scale: 0.85 },
+  { pos: [-0.22, -0.21, 0], rot: [0, -0.04, 0.16], scale: 0.90 },
+  { pos: [0.22, -0.25, -0.6], rot: [0, 0.04, -0.22], scale: 0.80 },
   { pos: [0.2, 1.0, -1.2], rot: [0, 0, 0.3], scale: 0.02 },
 ];
 

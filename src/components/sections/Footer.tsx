@@ -21,7 +21,7 @@ export default function Footer() {
       className="relative bg-ink px-6 pb-12 pt-24 md:px-10 md:pb-16 md:pt-32"
     >
       <div className="mx-auto max-w-7xl">
-        <nav className="flex flex-wrap gap-x-10 gap-y-4 border-b border-cream/15 pb-12 text-xs uppercase tracking-[0.2em] text-cream/70">
+        <nav className="grid grid-cols-2 md:flex md:flex-wrap gap-x-6 md:gap-x-10 gap-y-6 md:gap-y-4 border-b border-cream/15 pb-12 text-xs uppercase tracking-[0.2em] text-cream/70">
           {LINKS.map((link) => (
             <a
               key={link.label}

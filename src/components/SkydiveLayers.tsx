@@ -251,7 +251,7 @@ export default function SkydiveLayers() {
         {WORDS.map((word, i) => (
           <span
             key={word.text}
-            className="wordmark absolute inset-x-0 flex text-[clamp(4.5rem,18vw,15rem)] leading-[0.85] font-black uppercase tracking-wider"
+            className="wordmark absolute inset-x-0 flex text-[clamp(3rem,15vw,15rem)] md:text-[clamp(4.5rem,18vw,15rem)] leading-[0.85] font-black uppercase tracking-wider"
             style={{
               top: word.top,
               color: WORD_COLOR,

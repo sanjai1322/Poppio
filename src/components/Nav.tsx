@@ -16,7 +16,7 @@ export default function Nav() {
     <header
       id="site-nav"
       style={{ color: CREAM }}
-      className="fixed inset-x-0 top-0 z-50 flex items-center justify-between px-6 py-5 md:px-10"
+      className="fixed inset-x-0 top-0 z-50 flex items-center justify-between px-4 sm:px-6 py-5 md:px-10"
     >
       {/* POPPIO Waving Liquid Logo */}
       <a
@@ -97,7 +97,7 @@ export default function Nav() {
         </svg>
       </a>
 
-      <nav className="flex items-center gap-6 sm:gap-8 text-xs font-medium uppercase tracking-[0.2em]">
+      <nav className="flex items-center gap-3 sm:gap-8 text-[10px] sm:text-xs font-medium uppercase tracking-wider sm:tracking-[0.2em]">
         {LINKS.map((link) => (
           <a
             key={link.href}
