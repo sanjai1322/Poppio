@@ -38,6 +38,7 @@ const HERO_MOBILE: CanPose[] = [
   { pos: [-0.22, -0.21, 0], rot: [0, -0.04, 0.16], scale: 0.90 },
   { pos: [0.22, -0.25, -0.6], rot: [0, 0.04, -0.22], scale: 0.80 },
   { pos: [0.2, 1.0, -1.2], rot: [0, 0, 0.3], scale: 0.02 },
+  { pos: [0.42, -1.0, -1.2], rot: [0, 0, -0.3], scale: 0.02 },
 ];
 
 /** Cluster: Desktop layout grouped right of centre. */
@@ -50,9 +51,10 @@ const CLUSTER: CanPose[] = [
 
 /** Cluster: Mobile layout centered below headline for perfect vertical balance. */
 const CLUSTER_MOBILE: CanPose[] = [
-  { pos: [-0.02, -0.16, 0.3],  rot: [0, -0.03, 0.04],  scale: 0.52 },
-  { pos: [0.16,  -0.10, -0.7], rot: [0.02, 0.03, -0.08], scale: 0.44 },
-  { pos: [-0.16, -0.08, -0.4], rot: [-0.02, -0.02, 0.08],scale: 0.46 },
+  { pos: [-0.10, -0.16, 0.3],  rot: [0, -0.03, 0.04],  scale: 0.52 },
+  { pos: [0.14,  -0.12, -0.7], rot: [0.02, 0.03, -0.08], scale: 0.44 },
+  { pos: [-0.20, -0.06, -0.4], rot: [-0.02, -0.02, 0.08],scale: 0.46 },
+  { pos: [0.10, -0.22, 0.1], rot: [0.02, 0.03, -0.12], scale: 0.50 },
 ];
 
 const TUMBLE_TURNS = [2, -3, 3, -2];
