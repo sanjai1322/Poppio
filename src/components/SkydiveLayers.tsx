@@ -19,13 +19,13 @@ import { usePerfTier } from "@/lib/usePerfTier";
 gsap.registerPlugin(useGSAP, ScrollTrigger);
 
 /**
- * Three depth layers. Travel is the factor multiplied by the section's scroll
- * progress: higher numbers blow past the camera, lower ones drift behind.
+ * Atmospheric background cloud layers.
+ * All clouds render BEHIND the 3D can so the can is always 100% visible and razor-sharp.
  */
 const LAYERS = [
-  { key: "deep", count: 7, width: 22, blur: 6, opacity: 0.35, travel: 1.4 },
-  { key: "mid", count: 8, width: 34, blur: 2, opacity: 0.7, travel: 2.3 },
-  { key: "near", count: 6, width: 54, blur: 0, opacity: 0.95, travel: 3.8 },
+  { key: "deep", count: 6, width: 28, blur: 8, opacity: 0.25, travel: 1.2 },
+  { key: "mid",  count: 8, width: 38, blur: 4, opacity: 0.40, travel: 2.0 },
+  { key: "drift", count: 6, width: 48, blur: 2, opacity: 0.48, travel: 2.8 },
 ] as const;
 
 type Sprite = {
@@ -74,13 +74,12 @@ export default function SkydiveLayers() {
   const plate = useRef<HTMLElement | null>(null);
   const sky = useRef<HTMLDivElement>(null!);
   const backClouds = useRef<HTMLDivElement>(null!);
-  const nearClouds = useRef<HTMLDivElement>(null!);
   const wordsLayer = useRef<HTMLDivElement>(null!);
 
   const { isMobile } = usePerfTier();
 
   const layers = useMemo(
-    () => (isMobile ? [LAYERS[0], LAYERS[2]] : LAYERS),
+    () => (isMobile ? [LAYERS[0], LAYERS[1]] : LAYERS),
     [isMobile],
   );
 
@@ -108,7 +107,6 @@ export default function SkydiveLayers() {
       const setSkydiveOpacity = (skyOp: number, cloudOp: number, wordsOp: number) => {
         if (sky.current) sky.current.style.opacity = String(skyOp);
         if (backClouds.current) backClouds.current.style.opacity = String(cloudOp);
-        if (nearClouds.current) nearClouds.current.style.opacity = String(cloudOp);
         if (wordsLayer.current) wordsLayer.current.style.opacity = String(wordsOp);
       };
 
@@ -123,7 +121,6 @@ export default function SkydiveLayers() {
         end: SKYDIVE_START,
         scrub: true,
         onLeaveBack: () => {
-          // Guaranteed cleanup when scrolling back up into Hero or Meet All Four
           setSkydiveOpacity(0, 0, 0);
           skydiveProgress.current = 0;
         },
@@ -210,7 +207,7 @@ export default function SkydiveLayers() {
 
   return (
     <div aria-hidden>
-      {/* Sky background plate */}
+      {/* Sky background plate: rich cinematic gradient */}
       <div
         ref={sky}
         id="skydive-sky"
@@ -222,36 +219,34 @@ export default function SkydiveLayers() {
         }}
       />
 
-      {/* Back clouds — under the canvas */}
+      {/* Atmospheric clouds: BEHIND the 3D can at z-[7] for true depth */}
       <div
         ref={backClouds}
-        className="pointer-events-none fixed inset-0 z-[8] overflow-hidden transition-opacity duration-300"
+        className="pointer-events-none fixed inset-0 z-[7] overflow-hidden transition-opacity duration-300"
         style={{ opacity: 0 }}
       >
-        {field.map((sprite, i) =>
-          layers[sprite.layerIndex].key === "near" ? null : (
-            <div
-              key={i}
-              ref={(el) => {
-                if (el) sprites.current[i] = el;
-              }}
-              className="cloud absolute aspect-[2/1]"
-              style={{
-                left: sprite.x + "%",
-                width: layers[sprite.layerIndex].width + "vw",
-                opacity: layers[sprite.layerIndex].opacity,
-                filter: "blur(" + layers[sprite.layerIndex].blur + "px)",
-                color: sprite.pink ? DUSTY_PINK : "#FFFFFF",
-              }}
-            />
-          ),
-        )}
+        {field.map((sprite, i) => (
+          <div
+            key={i}
+            ref={(el) => {
+              if (el) sprites.current[i] = el;
+            }}
+            className="cloud absolute aspect-[2/1]"
+            style={{
+              left: sprite.x + "%",
+              width: layers[sprite.layerIndex].width + "vw",
+              opacity: layers[sprite.layerIndex].opacity,
+              filter: "blur(" + layers[sprite.layerIndex].blur + "px)",
+              color: sprite.pink ? DUSTY_PINK : "#FFFFFF",
+            }}
+          />
+        ))}
       </div>
 
-      {/* Words — under the canvas */}
+      {/* Typography: BEHIND the 3D can at z-[8] so the can stands in front */}
       <div
         ref={wordsLayer}
-        className="pointer-events-none fixed inset-0 z-[9] transition-opacity duration-300"
+        className="pointer-events-none fixed inset-0 z-[8] transition-opacity duration-300"
         style={{ opacity: 0 }}
       >
         {WORDS.map((word, i) => (
@@ -266,7 +261,7 @@ export default function SkydiveLayers() {
               paddingRight: word.justify === "flex-end" ? word.pad : undefined,
               letterSpacing: "0.04em",
               WebkitTextStroke: "1px rgba(255, 244, 224, 0.08)",
-              textShadow: "0 0.04em 0.8em rgba(46, 107, 230, 0.18)",
+              textShadow: "0 0.04em 0.8em rgba(46, 107, 230, 0.28)",
             }}
           >
             {word.text.split("").map((letter, c) => (
@@ -286,32 +281,6 @@ export default function SkydiveLayers() {
             ))}
           </span>
         ))}
-      </div>
-
-      {/* Near clouds — over the canvas */}
-      <div
-        ref={nearClouds}
-        className="pointer-events-none fixed inset-0 z-[15] overflow-hidden transition-opacity duration-300"
-        style={{ opacity: 0 }}
-      >
-        {field.map((sprite, i) =>
-          layers[sprite.layerIndex].key === "near" ? (
-            <div
-              key={i}
-              ref={(el) => {
-                if (el) sprites.current[i] = el;
-              }}
-              className="cloud absolute aspect-[2/1]"
-              style={{
-                left: sprite.x + "%",
-                width: layers[sprite.layerIndex].width + "vw",
-                opacity: layers[sprite.layerIndex].opacity,
-                filter: "blur(" + layers[sprite.layerIndex].blur + "px)",
-                color: sprite.pink ? DUSTY_PINK : "#FFFFFF",
-              }}
-            />
-          ) : null,
-        )}
       </div>
     </div>
   );
