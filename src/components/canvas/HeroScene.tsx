@@ -127,7 +127,7 @@ export default function HeroScene() {
 
       <IdleCan
         flavor={0}
-        turn={-20}
+        turn={-5}
         sway={5}
         position={[-x, y, 0]}
         rotation={[0, 0, 0.2]}
@@ -135,7 +135,7 @@ export default function HeroScene() {
       />
       <IdleCan
         flavor={3}
-        turn={22}
+        turn={5}
         sway={6}
         position={[x, isMobile ? -y : viewport.height * -0.14, -0.6]}
         rotation={[0, 0, -0.28]}
